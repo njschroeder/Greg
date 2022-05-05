@@ -80,10 +80,76 @@ async def on_message(message):
         await message.channel.send('Your card is the ' + card + ' of ' + suit + '!')
         return
 
-#help function
+#help functions
     if message_sent == '&help':
-        await message.channel.send('&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value')
+        await message.channel.send('&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality')
         return
+
+    if message_sent == '&pollhelp':
+        await message.channel.send('&newpoll [name]: creates a new poll with provided name (name not required)\n&getresult: returns the result of the poll at this very moment')
+        return
+
+#voting function
+    if message_as_list[0] == '&newpoll':
+        file_reset = open('ResultStore.txt', 'w')
+        pollname = ''
+        for _ in range(1, len(message_as_list)):
+            pollname += message_as_list[_] + ' '
+        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nRemember, you cannot change your vote. Send "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat')
+        return
+
+    if message_sent == 'Y':
+        vote_store = open('ResultStore.txt', 'r')
+        writeable_votes = open('ResultStore.txt', 'a')
+        has_voted = False
+        voteString = vote_store.read()
+        votes = voteString.split()
+        print(votes)
+        for _ in range(0, len(votes), 2):
+            if votes[_] == username:
+                has_voted = True
+            else:
+                pass
+        if has_voted:
+            await message.channel.send('you have already voted! You can only vote once')
+        else:
+            writeable_votes.write(username + ' y ')
+            await message.channel.send(username + ', you have voted yes on this poll')
+        return
+ 
+    if message_sent == 'N':
+        vote_store = open('ResultStore.txt', 'r')
+        writeable_votes = open('ResultStore.txt', 'a')
+        has_voted = False
+        voteString = vote_store.read()
+        votes = voteString.split()
+        print(votes)
+        for _ in range(0, len(votes), 2):
+            if votes[_] == username:
+                has_voted = True
+            else:
+                pass
+        if has_voted:
+            await message.channel.send('you have already voted! You can only vote once')
+        else:
+            writeable_votes.write(username + ' n ')
+            await message.channel.send(username + ', you have voted no on this poll')
+        return
+ 
+    if message_sent == '&getresult':
+        votecounts = [0, 0]
+        vote_store = open('ResultStore.txt', 'r')
+        votes = vote_store.read().split()
+        for _ in range(1, len(votes), 2):
+            if votes[_] == 'y':
+                votecounts[0] += 1
+            elif votes[_] == 'n':
+                votecounts[1] += 1
+            else:
+                pass
+        await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
+        return
+
 
 
 client.run(TOKEN)
