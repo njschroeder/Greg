@@ -30,7 +30,6 @@ async def on_message(message):
         word = message_as_list[i].lower()
         add_up_return = ''
         if word == 'im':
-            print(word)
             for _ in range(4):
                 try:
                     add_up_return += ' ' + message_as_list[i + _ + 1]
@@ -39,7 +38,6 @@ async def on_message(message):
             await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
             return
         elif word == 'i\'m':
-            print(word)
             for _ in range(4):
                 try:
                     add_up_return += ' ' + message_as_list[i + _ + 1]
@@ -47,6 +45,7 @@ async def on_message(message):
                     break
             await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
             return
+
 
 #quotes sender
     quotes = ['Do as I say, NOT as I do', 'Arnold Schwarzenegger: half motor oil, half anti-freeze', 'It\'s only communism when I say it\'s communism']
@@ -62,7 +61,9 @@ async def on_message(message):
     quotes.extend(d)
     quotes.extend(e)
     quotes.extend(f)
-    names = ['-Abraham Lincoln', '-Barack Obama', '-George Washington', '-Sun Tzu', '-Winston Churchill', '-Franklin Delano Roosevelt']
+    names = ['-Abraham Lincoln', '-Barack Obama', '-George Washington', '-Sun Tzu', '-Winston Churchill', '-Franklin Delano Roosevelt', '-Confucius', '-Dwayne \"The Rock\" Johnson', '-Socrates', '-John Locke']
+    g = ['-William Shakespeare']
+    names.extend(g)
     
     if message_sent == '&quote':
         quote = random.choice(quotes)
@@ -90,60 +91,95 @@ async def on_message(message):
         return
 
 #voting function
+    #creates poll, provides instructions
     if message_as_list[0] == '&newpoll':
-        file_reset = open('ResultStore.txt', 'w')
+        erase_1 = open('ResultStore1.txt', 'w')
+        erase_2 = open('ResultStore2.txt', 'w')
         pollname = ''
         for _ in range(1, len(message_as_list)):
             pollname += message_as_list[_] + ' '
-        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nRemember, you cannot change your vote. Send "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat')
+        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish')
         return
 
-    if message_sent == 'Y':
-        vote_store = open('ResultStore.txt', 'r')
-        writeable_votes = open('ResultStore.txt', 'a')
-        has_voted = False
+    #handles all necessary operations for vote reception
+    if message_sent == 'Y' or message_sent == 'N':
+        #determines which file code should read and which to manipulate
+        key_1 = 'ResultStore1.txt'
+        key_2 = 'ResultStore2.txt'
+        read_key = ''
+        f1 = open(key_1, 'r')
+        f2 = open(key_2, 'r')
+        f1_contents = f1.read()
+        f2_contents = f2.read()
+        if f1_contents == '' and f2_contents == '':
+            print('both are blank')
+            read_key = key_1
+            write_key = key_2
+            f2_0 = open(key_2, 'w')
+        elif f1_contents == '':
+            print('1 is blank, two is filled')
+            read_key = key_2
+            write_key = key_1
+        elif f2_contents == '':
+            print('2 is blank, 1 is filled')
+            read_key = key_1
+            write_key = key_2
+        else:
+            await message.channel.send('Error! Could not determine proper file to contact')
+
+        #records vote (making sure to not allow double votes)
+        vote_store = open(read_key, 'r')
+        writeable_votes = open(write_key, 'a')
+        yet_to_vote = True
         voteString = vote_store.read()
         votes = voteString.split()
-        print(votes)
-        for _ in range(0, len(votes), 2):
-            if votes[_] == username:
-                has_voted = True
-            else:
-                pass
-        if has_voted:
-            await message.channel.send('you have already voted! You can only vote once')
-        else:
-            writeable_votes.write(username + ' y ')
-            await message.channel.send(username + ', you have voted yes on this poll')
+        for _ in range(len(votes)):
+            try:
+                if votes[_ - 1] == username:
+                    print(votes[_ - 1] + ' is ' + username)
+                    writeable_votes.write(' ' + message_sent + ' ')
+                    yet_to_vote = False
+                else:
+                    print(votes[_ - 1] + ' is not ' + username)
+                    writeable_votes.write(votes[_])
+            except IndexError:
+                print(str(_) + ' is zero')
+                writeable_votes.write(votes[_])
+        if yet_to_vote:
+            print(username + ' was not found')
+            writeable_votes.write(username + ' ' + message_sent + ' ')
+        erase_old = open(read_key, 'w')
+        if message_sent == 'Y':
+            await message.channel.send(username + ', you have updated your vote to yes on this poll')
+        if message_sent == 'N':
+            await message.channel.send(username + ', you have updated your vote to no on this poll')
         return
- 
-    if message_sent == 'N':
-        vote_store = open('ResultStore.txt', 'r')
-        writeable_votes = open('ResultStore.txt', 'a')
-        has_voted = False
-        voteString = vote_store.read()
-        votes = voteString.split()
-        print(votes)
-        for _ in range(0, len(votes), 2):
-            if votes[_] == username:
-                has_voted = True
-            else:
-                pass
-        if has_voted:
-            await message.channel.send('you have already voted! You can only vote once')
-        else:
-            writeable_votes.write(username + ' n ')
-            await message.channel.send(username + ', you have voted no on this poll')
-        return
- 
+    
+    #gathers results and returns an answer
     if message_sent == '&getresult':
         votecounts = [0, 0]
-        vote_store = open('ResultStore.txt', 'r')
-        votes = vote_store.read().split()
+        key_1 = 'ResultStore1.txt'
+        key_2 = 'ResultStore2.txt'
+        f1 = open(key_1, 'r')
+        f2 = open(key_2, 'r')
+        f1_contents = f1.read()
+        f2_contents = f2.read()
+        print('f1 ' + f1_contents)
+        print('f2 ' + f2_contents)
+        read_key = ''
+        if f1_contents == '' and f2_contents == '':
+            await message.channel.send('Error! No votes logged')
+        if f1_contents == '':
+            vote_store = f2_contents
+        elif f2_contents == '':
+            vote_store = f1_contents
+        else:
+            await message.channel.send('Error! Votes logged incorrectly')
+        votes = vote_store.split()
         for _ in range(1, len(votes), 2):
-            if votes[_] == 'y':
+            if votes[_] == 'Y':
                 votecounts[0] += 1
-            elif votes[_] == 'n':
+            elif votes[_] == 'N':
                 votecounts[1] += 1
             else:
                 pass
