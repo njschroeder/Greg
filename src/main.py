@@ -19,7 +19,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message_sent == 'shutdown' and username == 'pandomains':
+    if message_sent == 'shutdown' and str(message.author) == 'pandomains#5375':
         await message.channel.send('shutting down')
         await client.close()
 
@@ -98,7 +98,7 @@ async def on_message(message):
         pollname = ''
         for _ in range(1, len(message_as_list)):
             pollname += message_as_list[_] + ' '
-        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish')
+        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish \n \n **DO NOT** spam your votes')
         return
 
     #handles all necessary operations for vote reception
@@ -112,20 +112,17 @@ async def on_message(message):
         f1_contents = f1.read()
         f2_contents = f2.read()
         if f1_contents == '' and f2_contents == '':
-            print('both are blank')
             read_key = key_1
             write_key = key_2
             f2_0 = open(key_2, 'w')
         elif f1_contents == '':
-            print('1 is blank, two is filled')
             read_key = key_2
             write_key = key_1
         elif f2_contents == '':
-            print('2 is blank, 1 is filled')
             read_key = key_1
             write_key = key_2
         else:
-            await message.channel.send('Error! Could not determine proper file to contact')
+            await message.channel.send('Error! Could not determine proper file to contact. Please launch a new poll')
 
         #records vote (making sure to not allow double votes)
         vote_store = open(read_key, 'r')
@@ -136,17 +133,13 @@ async def on_message(message):
         for _ in range(len(votes)):
             try:
                 if votes[_ - 1] == username:
-                    print(votes[_ - 1] + ' is ' + username)
                     writeable_votes.write(' ' + message_sent + ' ')
                     yet_to_vote = False
                 else:
-                    print(votes[_ - 1] + ' is not ' + username)
                     writeable_votes.write(votes[_])
             except IndexError:
-                print(str(_) + ' is zero')
                 writeable_votes.write(votes[_])
         if yet_to_vote:
-            print(username + ' was not found')
             writeable_votes.write(username + ' ' + message_sent + ' ')
         erase_old = open(read_key, 'w')
         if message_sent == 'Y':
@@ -157,6 +150,7 @@ async def on_message(message):
     
     #gathers results and returns an answer
     if message_sent == '&getresult':
+        check_correct = True
         votecounts = [0, 0]
         key_1 = 'ResultStore1.txt'
         key_2 = 'ResultStore2.txt'
@@ -164,8 +158,6 @@ async def on_message(message):
         f2 = open(key_2, 'r')
         f1_contents = f1.read()
         f2_contents = f2.read()
-        print('f1 ' + f1_contents)
-        print('f2 ' + f2_contents)
         read_key = ''
         if f1_contents == '' and f2_contents == '':
             await message.channel.send('Error! No votes logged')
@@ -174,17 +166,25 @@ async def on_message(message):
         elif f2_contents == '':
             vote_store = f1_contents
         else:
-            await message.channel.send('Error! Votes logged incorrectly')
+            await message.channel.send('Error! Votes logged incorrectly. Please launch a new poll')
         votes = vote_store.split()
-        for _ in range(1, len(votes), 2):
-            if votes[_] == 'Y':
-                votecounts[0] += 1
-            elif votes[_] == 'N':
-                votecounts[1] += 1
-            else:
-                pass
-        await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
-        return
+        #checks vote assortment to ensure that nobody has multiple votes
+        for _ in range(0, len(votes), 2):
+            for a in range(_ + 2, len(votes), 2):
+                if votes[_] == votes[a]:
+                    await message.channel.send('Error! Someone has multiple votes logged. Please launch a new poll')
+                    check_correct = False
+                    return
+        if check_correct:
+            for _ in range(1, len(votes), 2):
+                if votes[_] == 'Y':
+                    votecounts[0] += 1
+                elif votes[_] == 'N':
+                    votecounts[1] += 1
+                else:
+                    pass
+            await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
+            return
 
 
 
