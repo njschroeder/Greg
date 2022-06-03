@@ -1,4 +1,4 @@
 # Greg
 Repository for my discord bot Greg
 
-If you copy the code of this bot for yourself, please do not edit ResultStore.txt. That file entirely exists for storing votes in polls
+At this point, please do not spam the poll function with votes. If you go fast enough, it can unintentionally log more than one vote for a single user. I do plan to fix this in a later update
