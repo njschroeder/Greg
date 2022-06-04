@@ -1,3 +1,4 @@
+import string
 import discord
 import random
 
@@ -83,7 +84,7 @@ async def on_message(message):
 
 #help functions
     if message_sent == '&help':
-        await message.channel.send('&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality')
+        await message.channel.send('&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality \n &createsentence [desired length] [ngrams] creates a new sentence generated using the provided words as an ngram dictionary')
         return
 
     if message_sent == '&pollhelp':
@@ -185,6 +186,41 @@ async def on_message(message):
                     pass
             await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
             return
+
+#speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
+    
+    if message_as_list[0] == '&createsentence':
+        #creates the ngram dictionary from which the code can pull
+        dict = {}
+        if len(message_as_list) <= 3:
+            await message.channel.send('Your ngram dictionary is too short! Try again with a longer one')
+            return
+
+        for _ in range(2, len(message_as_list) - 1):
+            outValue = dict.setdefault(message_as_list[_], [message_as_list[_ + 1]])
+            if outValue != [message_as_list[_ + 1]]:
+                outValue.append(message_as_list[_ + 1])
+                dict.pop(message_as_list[_])
+                dict.setdefault(message_as_list[_], outValue)
+
+        #generates sentence from ngrams provided
+        send_string = ''
+        next_key = message_as_list[2]
+        send_string += next_key
+        length_cap = 15
+        if message_as_list[1].isalnum():
+            length_cap = int(message_as_list[1])
+        for _ in range(length_cap - 1):
+            try:
+                nextWord = random.choice(dict.get(next_key))
+                send_string += ' ' + nextWord
+                next_key = nextWord
+            except TypeError:
+                await message.channel.send(send_string)
+                return
+                
+        await message.channel.send(send_string)
+        return
 
 
 
