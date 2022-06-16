@@ -29,6 +29,7 @@ async def on_message(message):
 #dad joke generator
     for i in range(len(message_as_list) - 1):
         word = message_as_list[i].lower()
+        nextword = message_as_list[i+1].lower()
         add_up_return = ''
         if word == 'im':
             for _ in range(4):
@@ -46,6 +47,13 @@ async def on_message(message):
                     break
             await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
             return
+        elif word == 'i' and nextword == 'am':
+            for _ in range(4):
+                try:
+                    add_up_return += ' ' + message_as_list[i + _ + 2]
+                except IndexError:
+                    break
+            await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
 
 
 #quotes sender
