@@ -92,7 +92,9 @@ async def on_message(message):
 
 #help functions
     if message_sent == '&help':
-        await message.channel.send('&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality \n &createsentence [desired length] [ngrams] creates a new sentence generated using the provided words as an ngram dictionary')
+        a = '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality'
+        b = '\n&createsentence [ngrams] [desired length] creates a new sentence generated using the provided words as an ngram dictionary'
+        await message.channel.send(a + b) 
         return
 
     if message_sent == '&pollhelp':
@@ -199,12 +201,14 @@ async def on_message(message):
     
     if message_as_list[0] == '&createsentence':
         #creates the ngram dictionary from which the code can pull
+        custom_length = 1
         dict = {}
         if len(message_as_list) <= 3:
             await message.channel.send('Your ngram dictionary is too short! Try again with a longer one')
             return
-
-        for _ in range(2, len(message_as_list) - 1):
+        if message_as_list[len(message_as_list)-1].isnumeric():
+            custom_length = 2
+        for _ in range(1, len(message_as_list) - custom_length):
             outValue = dict.setdefault(message_as_list[_], [message_as_list[_ + 1]])
             if outValue != [message_as_list[_ + 1]]:
                 outValue.append(message_as_list[_ + 1])
@@ -213,11 +217,11 @@ async def on_message(message):
 
         #generates sentence from ngrams provided
         send_string = ''
-        next_key = message_as_list[2]
+        next_key = message_as_list[1]
         send_string += next_key
         length_cap = 15
-        if message_as_list[1].isalnum():
-            length_cap = int(message_as_list[1])
+        if custom_length == 2:
+            length_cap = int(message_as_list[len(message_as_list)-1])
         for _ in range(length_cap - 1):
             try:
                 nextWord = random.choice(dict.get(next_key))
