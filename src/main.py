@@ -1,6 +1,7 @@
 import string
 import discord
 import random
+import time
 
 TOKEN = 'YOUR TOKEN HERE'
 
@@ -93,8 +94,9 @@ async def on_message(message):
 #help functions
     if message_sent == '&help':
         a = '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality'
-        b = '\n&createsentence [ngrams] [desired length] creates a new sentence generated using the provided words as an ngram dictionary'
-        await message.channel.send(a + b) 
+        b = '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary'
+        c = '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value'
+        await message.channel.send(a + b + c) 
         return
 
     if message_sent == '&pollhelp':
@@ -234,6 +236,27 @@ async def on_message(message):
         await message.channel.send(send_string)
         return
 
+#thymecheck
+    if message_sent == '&thymecheck':
+        unix_time = time.time()
+        CDT_unix = unix_time - 18000 #a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
+        seconds = CDT_unix % 86400
+        print(seconds)
+
+        hours_decimal = seconds / 3600
+        hours = int(hours_decimal)
+        seconds = seconds - (hours * 3600)
+        print(hours)
+
+        minutes_decimal = seconds / 60
+        minutes = int(minutes_decimal)
+        print(minutes)
+
+        ounces = (hours * 100) + minutes
+        price_decimal = ounces * 39.7 #uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
+        price_int = int(price_decimal)
+        price = price_int / 100
+        await message.channel.send(str(ounces) + ' ounces of thyme would cost $' + str(price))
 
 
 client.run(TOKEN)
