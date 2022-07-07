@@ -96,6 +96,7 @@ async def on_message(message):
         a = '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality'
         b = '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary'
         c = '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value'
+        d = '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)'
         await message.channel.send(a + b + c) 
         return
 
@@ -258,5 +259,41 @@ async def on_message(message):
         price = price_int / 100
         await message.channel.send(str(ounces) + ' ounces of thyme would cost $' + str(price))
 
+#rock paper scissors
+    if message_as_list[0] == '&rps':
+        try:
+            if message_as_list[1] == 'rock' or message_as_list[1] == 'paper' or message_as_list[1] == 'scissors':
+                opponent_move = message_as_list[1]
+                move_list = ['rock', 'paper', 'scissors']
+                bot_move = random.choice(move_list)
+                if opponent_move == 'rock':
+                    if bot_move == 'rock':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
+                    elif bot_move == 'paper':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
+                    elif bot_move == 'scissors':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
+            
+                elif opponent_move == 'paper':
+                    if bot_move == 'rock':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
+                    elif bot_move == 'paper':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
+                    elif bot_move == 'scissors':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
+            
+                elif opponent_move == 'scissors':
+                    if bot_move == 'rock':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
+                    elif bot_move == 'paper':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
+                    elif bot_move == 'scissors':
+                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
+        
+            else:
+                await message.channel.send('Error! No valid move provided. Please provide a valid move')
+        
+        except IndexError:
+            await message.channel.send('Error! No valid move provided. Please provide a valid move')
 
 client.run(TOKEN)
