@@ -101,7 +101,8 @@ async def on_message(message):
         b = '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary'
         c = '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value'
         d = '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)'
-        await message.channel.send(a + b + c) 
+        e = '\n&newttt: provides a blank tic tac toe board and instructions to play'
+        await message.channel.send(a + b + c + d + e) 
         return
 
     if message_sent == '&pollhelp':
@@ -303,21 +304,24 @@ async def on_message(message):
     print(message_as_list)
 
 #tictactoe bot
+    #prepares new game
     if message_sent == '&newttt':
-        await message.channel.send('Instructions: Copy each board when provided, then paste the board with your move added to a spot marked as I')
+        await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
         graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
         for _ in range(3):
             printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
             builtMessage = "    ".join(printTuple)
             await message.channel.send(builtMessage)
         return
+    #parses whether the message sent provides a valid tic tac toe board
     isBoard = True
     if(len(message_as_list) == 9):
         for _ in range(9):
-            if message_as_list[_].upper() != 'I':
-                if message_as_list[_].upper() != 'X':
-                    if message_as_list[_].upper() != 'O':
+            if message_as_list[_] != 'I':
+                if message_as_list[_] != 'X':
+                    if message_as_list[_] != 'O':
                         isBoard = False
+        #Translates inputs to what the bot understands, calls for AI move
         if isBoard:
             isFinished = True
             newBoard = message_as_list
@@ -325,15 +329,23 @@ async def on_message(message):
                 if newBoard[_] == 'I':
                     isFinished = False
                     newBoard[_] = ' '
-                    print('this is not a finished game')
             if not isFinished:
                 aiMovePosition = int(ttt.getAIMove(newBoard, "O", "O")[0])
-            print('AI picked' + str(aiMovePosition))
             newBoard[aiMovePosition] = "O"
+            #inserts the AI move and produces an output to be sent to chat, as well as any game-ending declarations
             graphic = ttt.printBoard(newBoard)
             for _ in range(3):
                 printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
-                builtMessage = "    ".join(printTuple)
+                playCount = 0
+                for i in range(3):
+                    if printTuple[i] != 'I':
+                        playCount += 1
+                if playCount == 0:
+                    builtMessage = "    ".join(printTuple)
+                elif playCount == 1:
+                    builtMessage = "   ".join(printTuple)
+                else:
+                    builtMessage = "  ".join(printTuple)
                 await message.channel.send(builtMessage)
             if ttt.checkWin(newBoard, 'X'):
                 await message.channel.send('You win')
