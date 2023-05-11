@@ -5,7 +5,7 @@ import random
 import time
 import TicTacToeMaster as ttt
 
-TOKEN = 'OTQ5ODEwNTQ2NzUwOTI2ODY5.YiPyAA._HZziAd7fdHlOWgNKAYo2QrTMyw'
+TOKEN = 'YOUR TOKEN HERE'
 
 intents = Intents.default()
 intents.message_content = True
