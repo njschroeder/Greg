@@ -1,11 +1,15 @@
 import string
 import discord
+from discord import Intents
 import random
 import time
+import TicTacToeMaster as ttt
 
-TOKEN = 'YOUR TOKEN HERE'
+TOKEN = 'OTQ5ODEwNTQ2NzUwOTI2ODY5.YiPyAA._HZziAd7fdHlOWgNKAYo2QrTMyw'
 
-client = discord.Client()
+intents = Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -218,7 +222,7 @@ async def on_message(message):
                 dict.pop(message_as_list[_])
                 dict.setdefault(message_as_list[_], outValue)
 
-        #generates sentence from ngrams provided
+    #generates sentence from ngrams provided
         send_string = ''
         next_key = message_as_list[1]
         send_string += next_key
@@ -295,5 +299,49 @@ async def on_message(message):
         
         except IndexError:
             await message.channel.send('Error! No valid move provided. Please provide a valid move')
+
+    print(message_as_list)
+
+#tictactoe bot
+    if message_sent == '&newttt':
+        await message.channel.send('Instructions: Copy each board when provided, then paste the board with your move added to a spot marked as I')
+        graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
+        for _ in range(3):
+            printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
+            builtMessage = "    ".join(printTuple)
+            await message.channel.send(builtMessage)
+        return
+    isBoard = True
+    if(len(message_as_list) == 9):
+        for _ in range(9):
+            if message_as_list[_].upper() != 'I':
+                if message_as_list[_].upper() != 'X':
+                    if message_as_list[_].upper() != 'O':
+                        isBoard = False
+        if isBoard:
+            isFinished = True
+            newBoard = message_as_list
+            for _ in range(9):
+                if newBoard[_] == 'I':
+                    isFinished = False
+                    newBoard[_] = ' '
+                    print('this is not a finished game')
+            if not isFinished:
+                aiMovePosition = int(ttt.getAIMove(newBoard, "O", "O")[0])
+            print('AI picked' + str(aiMovePosition))
+            newBoard[aiMovePosition] = "O"
+            graphic = ttt.printBoard(newBoard)
+            for _ in range(3):
+                printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
+                builtMessage = "    ".join(printTuple)
+                await message.channel.send(builtMessage)
+            if ttt.checkWin(newBoard, 'X'):
+                await message.channel.send('You win')
+            elif ttt.checkWin(newBoard, 'O'):
+                await message.channel.send('I win')
+            elif ttt.checkTie(newBoard):
+                await message.channel.send('We tied')
+        return
+
 
 client.run(TOKEN)
