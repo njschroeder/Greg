@@ -41,7 +41,7 @@ async def on_message(message):
 
     # quotes sender
     if message_sent == '&quote':
-        quotes, names = get_quotes()
+        quotes, names = get_quotes_and_names()
         quote = random.choice(quotes)
         name = random.choice(names)
         await message.channel.send(quote + '\n' + '\n' + name)
@@ -315,7 +315,7 @@ async def on_message(message):
                 await message.channel.send('We tied')
         return
 
-def get_quotes(): 
+def get_quotes_and_names(): 
     with open("Greg/Quotes/unique_quotes.json") as q:
         quotes_and_names = json.load(q)
 
