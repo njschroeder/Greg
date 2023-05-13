@@ -322,7 +322,7 @@ def get_quotes():
         quotes, names = [], []
         for i in quotes_and_names["data"]:
             quotes.append(i["quote"])
-            names.append(i["author"])
+            names.append("-" + i["author"])
 
     return (quotes, names)
 
