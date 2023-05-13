@@ -1,11 +1,8 @@
-import string
-import discord
+import string, discord, random, time, json
 from discord import Intents
-import random
-import time
-import TicTacToeMaster as ttt
+import TicTacToeMaster as ttt 
 
-TOKEN = 'YOUR TOKEN HERE'
+TOKEN, DEVELOPER = 'YOUR TOKEN HERE', 'pandomains#5375'
 
 intents = Intents.default()
 intents.message_content = True
@@ -18,74 +15,48 @@ async def on_ready():
 async def on_message(message):
     username = str(message.author).split('#')[0]
     message_sent = str(message.content)
-    message_as_list = message_sent.split()
+    messages = message_sent.split()
     channel = str(message.channel.name)
-    print(f'{username}: {message_sent} ({channel})')
+    print(f'{username}: {messages} ({channel})')
 
     if message.author == client.user:
         return
-
-    if message_sent == 'shutdown' and str(message.author) == 'pandomains#5375':
+    elif message_sent == 'shutdown' and str(message.author) == DEVELOPER:
         await message.channel.send('shutting down')
         await client.close()
 
-#dad joke generator
-    for i in range(len(message_as_list) - 1):
-        word = message_as_list[i].lower()
-        nextword = message_as_list[i+1].lower()
+    # dad joke generator
+    for i in range(len(messages) - 1):
+        word = messages[i].lower()
+        next_word = messages[i+1].lower()
         add_up_return = ''
-        if word == 'im' or word == 'i\'m':
-            for _ in range(i + 4):
+        if word == 'im' or word == 'i\'m' or (word == "i" and next_word == "am"):
+            for j in range(i + 4):
                 try:
-                    add_up_return += ' ' + message_as_list[i + _ + 1]
+                    add_up_return += ' ' + messages[i + j + 1]
                 except IndexError:
                     break
             await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
             return
-        elif (word == 'i' and nextword == 'am'):
-            for _ in range(i + 4):
-                try:
-                    add_up_return += ' ' + message_as_list[i + _ + 2]
-                except IndexError:
-                    break
-            await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
 
-
-#quotes sender
-    quotes = ['Do as I say, NOT as I do', 'Arnold Schwarzenegger: half motor oil, half anti-freeze', 'It\'s only communism when I say it\'s communism']
-    a = ['\"I\'m hungy, I\'m gonna go eat my cookie\"', '\"Yo I didn\'t know you guys kept gatorade in here!\" * grabs windex *', '\"I don\'t have insomnia I just can\'t sleep at night\"']
-    b = ['\"I have to bark back or else it feels awkward\"', '\"Though I\'m pretty they don\'t have to do anything\"', '\"Okay who nominated Mr. Beast\"']
-    c = ['\"My brain is a code.org assignment\"', '\"Did Carl Sagan write the Communist Manifesto?\"', '\"Diaphragm\" (pronounced as spelled)', '\"I thought Apple Bottom Jeans was a song from the forties\"']
-    d = ['\"Did you know about the surgery they used to do for Cadillacs\"', '\"Using discord light mode is Adrian\'s only personality trait\"', '\"Explain this, Santa deniers\"']
-    e = ['\"Joe Biden isn\'t black\"', '\"Why is there Al Gore Fanfiction?\"', '\"Work fast safety last!\"', '\"This club is NOT a safe space for left handed people\"']
-    f = ['\"Y\'know what\'s fun? Arson\"', '\"It\'s like using a nuclear bomb to kill a spider in your house\"', '\"Who sells communist fan merch?\"']
-    quotes.extend(a)
-    quotes.extend(b)
-    quotes.extend(c)
-    quotes.extend(d)
-    quotes.extend(e)
-    quotes.extend(f)
-    names = ['-Abraham Lincoln', '-Barack Obama', '-George Washington', '-Sun Tzu', '-Winston Churchill', '-Franklin Delano Roosevelt', '-Confucius', '-Dwayne \"The Rock\" Johnson', '-Socrates', '-John Locke']
-    g = ['-William Shakespeare']
-    names.extend(g)
-    
+    # quotes sender
     if message_sent == '&quote':
+        quotes, names = get_quotes()
         quote = random.choice(quotes)
         name = random.choice(names)
         await message.channel.send(quote + '\n' + '\n' + name)
         return
 
-
-#random card generator
-    card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
-    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+    # random card generator
     if message_sent == '&drawcard':
+        card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
+        suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
         card = random.choice(card_names)
         suit = random.choice(suits)
         await message.channel.send('Your card is the ' + card + ' of ' + suit + '!')
         return
 
-#help functions
+    # help functions
     if message_sent == '&help':
         a = '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality'
         b = '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary'
@@ -99,20 +70,20 @@ async def on_message(message):
         await message.channel.send('&newpoll [name]: creates a new poll with provided name (name not required)\n&getresult: returns the result of the poll at this very moment')
         return
 
-#voting function
-    #creates poll, provides instructions
-    if message_as_list[0] == '&newpoll':
+    # voting function
+    # creates poll, provides instructions
+    if messages[0] == '&newpoll':
         erase_1 = open('ResultStore1.txt', 'w')
         erase_2 = open('ResultStore2.txt', 'w')
         pollname = ''
-        for _ in range(1, len(message_as_list)):
-            pollname += message_as_list[_] + ' '
+        for _ in range(1, len(messages)):
+            pollname += messages[_] + ' '
         await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish \n \n **DO NOT** spam your votes')
         return
 
-    #handles all necessary operations for vote reception
+    # handles all necessary operations for vote reception
     if message_sent == 'Y' or message_sent == 'N':
-        #determines which file code should read and which to manipulate
+        # determines which file code should read and which to manipulate
         key_1 = 'ResultStore1.txt'
         key_2 = 'ResultStore2.txt'
         read_key = ''
@@ -133,7 +104,7 @@ async def on_message(message):
         else:
             await message.channel.send('Error! Could not determine proper file to contact. Please launch a new poll')
 
-        #records vote (making sure to not allow double votes)
+        # records vote (making sure to not allow double votes)
         vote_store = open(read_key, 'r')
         writeable_votes = open(write_key, 'a')
         yet_to_vote = True
@@ -157,7 +128,7 @@ async def on_message(message):
             await message.channel.send(username + ', you have updated your vote to no on this poll')
         return
     
-    #gathers results and returns an answer
+    # gathers results and returns an answer
     if message_sent == '&getresult':
         check_correct = True
         votecounts = [0, 0]
@@ -177,7 +148,7 @@ async def on_message(message):
         else:
             await message.channel.send('Error! Votes logged incorrectly. Please launch a new poll')
         votes = vote_store.split()
-        #checks vote assortment to ensure that nobody has multiple votes
+        # checks vote assortment to ensure that nobody has multiple votes
         for _ in range(0, len(votes), 2):
             for a in range(_ + 2, len(votes), 2):
                 if votes[_] == votes[a]:
@@ -195,31 +166,30 @@ async def on_message(message):
             await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
             return
 
-#speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
-    
-    if message_as_list[0] == '&createsentence':
-        #creates the ngram dictionary from which the code can pull
+    # speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
+    if messages[0] == '&createsentence':
+        # creates the ngram dictionary from which the code can pull
         custom_length = 1
         dict = {}
-        if len(message_as_list) <= 3:
+        if len(messages) <= 3:
             await message.channel.send('Your ngram dictionary is too short! Try again with a longer one')
             return
-        if message_as_list[len(message_as_list)-1].isnumeric():
+        if messages[len(messages)-1].isnumeric():
             custom_length = 2
-        for _ in range(1, len(message_as_list) - custom_length):
-            outValue = dict.setdefault(message_as_list[_], [message_as_list[_ + 1]])
-            if outValue != [message_as_list[_ + 1]]:
-                outValue.append(message_as_list[_ + 1])
-                dict.pop(message_as_list[_])
-                dict.setdefault(message_as_list[_], outValue)
+        for _ in range(1, len(messages) - custom_length):
+            outValue = dict.setdefault(messages[_], [messages[_ + 1]])
+            if outValue != [messages[_ + 1]]:
+                outValue.append(messages[_ + 1])
+                dict.pop(messages[_])
+                dict.setdefault(messages[_], outValue)
 
-    #generates sentence from ngrams provided
+        # generates sentence from ngrams provided
         send_string = ''
-        next_key = message_as_list[1]
+        next_key = messages[1]
         send_string += next_key
         length_cap = 15
         if custom_length == 2:
-            length_cap = int(message_as_list[len(message_as_list)-1])
+            length_cap = int(messages[len(messages)-1])
         for _ in range(length_cap - 1):
             try:
                 nextWord = random.choice(dict.get(next_key))
@@ -232,10 +202,10 @@ async def on_message(message):
         await message.channel.send(send_string)
         return
 
-#thymecheck
+# thymecheck
     if message_sent == '&thymecheck':
         unix_time = time.time()
-        CDT_unix = unix_time - 18000 #a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
+        CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
         seconds = CDT_unix % 86400
         print(seconds)
 
@@ -249,16 +219,16 @@ async def on_message(message):
         print(minutes)
 
         ounces = (hours * 100) + minutes
-        price_decimal = ounces * 39.7 #uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
+        price_decimal = ounces * 39.7 # uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
         price_int = int(price_decimal)
         price = price_int / 100
         await message.channel.send(str(ounces) + ' ounces of thyme would cost $' + str(price))
 
-#rock paper scissors
-    if message_as_list[0] == '&rps':
+    # rock paper scissors
+    if messages[0] == '&rps':
         try:
-            if message_as_list[1] == 'rock' or message_as_list[1] == 'paper' or message_as_list[1] == 'scissors':
-                opponent_move = message_as_list[1]
+            if messages[1] == 'rock' or messages[1] == 'paper' or messages[1] == 'scissors':
+                opponent_move = messages[1]
                 move_list = ['rock', 'paper', 'scissors']
                 bot_move = random.choice(move_list)
                 if opponent_move == 'rock':
@@ -291,10 +261,10 @@ async def on_message(message):
         except IndexError:
             await message.channel.send('Error! No valid move provided. Please provide a valid move')
 
-    print(message_as_list)
+    print(messages)
 
-#tictactoe bot
-    #prepares new game
+    # tictactoe bot
+    # prepares new game
     if message_sent == '&newttt':
         await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
         graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
@@ -303,18 +273,18 @@ async def on_message(message):
             builtMessage = "    ".join(printTuple)
             await message.channel.send(builtMessage)
         return
-    #parses whether the message sent provides a valid tic tac toe board
+    # parses whether the message sent provides a valid tic tac toe board
     isBoard = True
-    if(len(message_as_list) == 9):
+    if(len(messages) == 9):
         for _ in range(9):
-            if message_as_list[_] != 'I':
-                if message_as_list[_] != 'X':
-                    if message_as_list[_] != 'O':
+            if messages[_] != 'I':
+                if messages[_] != 'X':
+                    if messages[_] != 'O':
                         isBoard = False
-        #Translates inputs to what the bot understands, calls for AI move
+        # Translates inputs to what the bot understands, calls for AI move
         if isBoard:
             isFinished = True
-            newBoard = message_as_list
+            newBoard = messages
             for _ in range(9):
                 if newBoard[_] == 'I':
                     isFinished = False
@@ -322,7 +292,7 @@ async def on_message(message):
             if not isFinished:
                 aiMovePosition = int(ttt.getAIMove(newBoard, "O", "O")[0])
             newBoard[aiMovePosition] = "O"
-            #inserts the AI move and produces an output to be sent to chat, as well as any game-ending declarations
+            # inserts the AI move and produces an output to be sent to chat, as well as any game-ending declarations
             graphic = ttt.printBoard(newBoard)
             for _ in range(3):
                 printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
@@ -345,5 +315,15 @@ async def on_message(message):
                 await message.channel.send('We tied')
         return
 
+def get_quotes(): 
+    with open("Greg/Quotes/unique_quotes.json") as q:
+        quotes_and_names = json.load(q)
+
+        quotes, names = [], []
+        for i in quotes_and_names["data"]:
+            quotes.append(i["quote"])
+            names.append(i["author"])
+
+    return (quotes, names)
 
 client.run(TOKEN)
