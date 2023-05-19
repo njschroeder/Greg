@@ -7,6 +7,7 @@ TOKEN, DEVELOPER = 'YOUR TOKEN HERE', 'pandomains#5375'
 intents = Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
+global_cache = {}
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -26,34 +27,22 @@ async def on_message(message):
         await client.close()
 
     # dad joke generator
-    for i in range(len(messages) - 1):
-        word = messages[i].lower()
-        next_word = messages[i+1].lower()
-        add_up_return = ''
-        if word == 'im' or word == 'i\'m' or (word == "i" and next_word == "am"):
-            for j in range(i + 4):
-                try:
-                    add_up_return += ' ' + messages[i + j + 1]
-                except IndexError:
-                    break
-            await message.channel.send('Hi' + add_up_return + ', I\'m Greg!')
-            return
+    dad_joke = dad_joke_generator()
+    if dad_joke:
+        await message.channel.send(dad_joke)
+        return 
 
     # quotes sender
     if message_sent == '&quote':
         quotes, names = get_quotes_and_names()
         quote = random.choice(quotes)
         name = random.choice(names)
-        await message.channel.send(quote + '\n' + '\n' + name)
+        await message.channel.send(f"{quote}\n'\n {name}")
         return
 
     # random card generator
     if message_sent == '&drawcard':
-        card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
-        suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-        card = random.choice(card_names)
-        suit = random.choice(suits)
-        await message.channel.send('Your card is the ' + card + ' of ' + suit + '!')
+        await message.channel.send(random_card_generator())
         return
 
     # help functions
@@ -202,7 +191,7 @@ async def on_message(message):
         await message.channel.send(send_string)
         return
 
-# thymecheck
+    # thymecheck
     if message_sent == '&thymecheck':
         unix_time = time.time()
         CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
@@ -315,7 +304,24 @@ async def on_message(message):
                 await message.channel.send('We tied')
         return
 
+def dad_joke_generator():
+    for i in range(len(messages) - 1):
+        word = messages[i].lower()
+        next_word = messages[i+1].lower()
+        if word in ("im", "i'm", "i am"):
+            add_up_return = ''
+            for j in range(i + 4):
+                try:
+                    add_up_return += ' ' + messages[i + j + 1]
+                except IndexError:
+                    break
+            return f'Hi {add_up_return}, I\'m Greg!'
+    return None
+
 def get_quotes_and_names(): 
+    if "Quotes and Names" in global_cache:
+        return global_cache[(quotes, names)]
+
     with open("Greg/Quotes/unique_quotes.json") as q:
         quotes_and_names = json.load(q)
 
@@ -323,7 +329,14 @@ def get_quotes_and_names():
         for i in quotes_and_names["data"]:
             quotes.append(i["quote"])
             names.append("-" + i["author"])
-
+    global_cache["Quotes and Names"] = (quotes, names)
     return (quotes, names)
+
+def random_card_generator():
+    card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
+    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+    card = random.choice(card_names)
+    suit = random.choice(suits)
+    return f'Your card is the {card} of {suit}!'
 
 client.run(TOKEN)
