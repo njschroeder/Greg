@@ -14,64 +14,64 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    username = str(message.author).split('#')[0]
+    username_with_tag = str(message.author)
+    username = username_with_tag.partition('#')[0]
     message_sent = str(message.content)
     messages = message_sent.split()
     channel = str(message.channel.name)
+    is_on = True
     print(f'{username}: {messages} ({channel})')
 
     if message.author == client.user:
         return
-    elif message_sent == 'shutdown' and str(message.author) == DEVELOPER:
+    elif message_sent == '&shutdown' and username_with_tag == DEVELOPER:
         await message.channel.send('shutting down')
         await client.close()
+    elif message_sent == '&stop' and username_with_tag == DEVELOPER:
+        is_on = False
+    elif message_sent == '&start' and username_with_tag == DEVELOPER:
+        is_on = True
 
     # dad joke generator
-    dad_joke = dad_joke_generator()
-    if dad_joke:
+    dad_joke = dad_joke_generator(messages)
+    if is_on and dad_joke:
         await message.channel.send(dad_joke)
         return 
 
     # quotes sender
-    if message_sent == '&quote':
-        quotes, names = get_quotes_and_names()
-        quote = random.choice(quotes)
-        name = random.choice(names)
+    if is_on and message_sent == '&quote':
+        quote, name = get_quotes_and_names()
         await message.channel.send(f"{quote}\n'\n {name}")
         return
 
     # random card generator
-    if message_sent == '&drawcard':
+    if is_on and message_sent == '&drawcard':
         await message.channel.send(random_card_generator())
         return
 
     # help functions
     if message_sent == '&help':
-        a = '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality'
-        b = '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary'
-        c = '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value'
-        d = '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)'
-        e = '\n&newttt: provides a blank tic tac toe board and instructions to play'
-        await message.channel.send(a + b + c + d + e) 
+        await message.channel.send(get_help_info()) 
         return
 
-    if message_sent == '&pollhelp':
+    # poll help
+    if is_on and message_sent == '&pollhelp':
         await message.channel.send('&newpoll [name]: creates a new poll with provided name (name not required)\n&getresult: returns the result of the poll at this very moment')
         return
 
-    # voting function
+    # activate fishgpt
+    if is_on and message[0] == "&fishgpt":
+        await message.channel.send('fish ' * random.randint(10, 30))
+        return 
+
+    # VOTING FUNCTION
     # creates poll, provides instructions
-    if messages[0] == '&newpoll':
-        erase_1 = open('ResultStore1.txt', 'w')
-        erase_2 = open('ResultStore2.txt', 'w')
-        pollname = ''
-        for _ in range(1, len(messages)):
-            pollname += messages[_] + ' '
-        await message.channel.send('**NEW POLL** \n \n' + pollname + '\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish \n \n **DO NOT** spam your votes')
+    if is_on and messages[0] == '&newpoll':
+        await message.channel.send(create_poll(messages))
         return
 
     # handles all necessary operations for vote reception
-    if message_sent == 'Y' or message_sent == 'N':
+    if is_on and message_sent == 'Y' or message_sent == 'N':
         # determines which file code should read and which to manipulate
         key_1 = 'ResultStore1.txt'
         key_2 = 'ResultStore2.txt'
@@ -80,6 +80,7 @@ async def on_message(message):
         f2 = open(key_2, 'r')
         f1_contents = f1.read()
         f2_contents = f2.read()
+        f2_0 = None
         if f1_contents == '' and f2_contents == '':
             read_key = key_1
             write_key = key_2
@@ -99,26 +100,33 @@ async def on_message(message):
         yet_to_vote = True
         voteString = vote_store.read()
         votes = voteString.split()
-        for _ in range(len(votes)):
+        for i in range(len(votes)):
             try:
-                if votes[_ - 1] == username:
-                    writeable_votes.write(' ' + message_sent + ' ')
+                if votes[i - 1] == username:
+                    writeable_votes.write(f' {message_sent} ')
                     yet_to_vote = False
                 else:
-                    writeable_votes.write(votes[_])
+                    writeable_votes.write(votes[i])
             except IndexError:
-                writeable_votes.write(votes[_])
+                writeable_votes.write(votes[i])
         if yet_to_vote:
             writeable_votes.write(username + ' ' + message_sent + ' ')
-        erase_old = open(read_key, 'w')
+        with open(read_key, 'w') as _:
+            pass
         if message_sent == 'Y':
-            await message.channel.send(username + ', you have updated your vote to yes on this poll')
+            await message.channel.send(f'{username}, you have updated your vote to yes on this poll')
         if message_sent == 'N':
-            await message.channel.send(username + ', you have updated your vote to no on this poll')
+            await message.channel.send(f'{username}, you have updated your vote to no on this poll')
+        f1.close()
+        f2.close()
+        if f2_0:
+            f2_0.close()
+        vote_store.close()
+        writeable_votes.close()
         return
     
     # gathers results and returns an answer
-    if message_sent == '&getresult':
+    if is_on and message_sent == '&getresult':
         check_correct = True
         votecounts = [0, 0]
         key_1 = 'ResultStore1.txt'
@@ -138,25 +146,25 @@ async def on_message(message):
             await message.channel.send('Error! Votes logged incorrectly. Please launch a new poll')
         votes = vote_store.split()
         # checks vote assortment to ensure that nobody has multiple votes
-        for _ in range(0, len(votes), 2):
-            for a in range(_ + 2, len(votes), 2):
-                if votes[_] == votes[a]:
+        for i in range(0, len(votes), 2):
+            for a in range(i + 2, len(votes), 2):
+                if votes[i] == votes[a]:
                     await message.channel.send('Error! Someone has multiple votes logged. Please launch a new poll')
                     check_correct = False
                     return
         if check_correct:
-            for _ in range(1, len(votes), 2):
-                if votes[_] == 'Y':
+            for i in range(1, len(votes), 2):
+                if votes[i] == 'Y':
                     votecounts[0] += 1
-                elif votes[_] == 'N':
+                elif votes[i] == 'N':
                     votecounts[1] += 1
-                else:
-                    pass
             await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
             return
+        f1.close()
+        f2.close()
 
     # speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
-    if messages[0] == '&createsentence':
+    if is_on and messages[0] == '&createsentence':
         # creates the ngram dictionary from which the code can pull
         custom_length = 1
         dict = {}
@@ -192,7 +200,7 @@ async def on_message(message):
         return
 
     # thymecheck
-    if message_sent == '&thymecheck':
+    if is_on and message_sent == '&thymecheck':
         unix_time = time.time()
         CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
         seconds = CDT_unix % 86400
@@ -214,7 +222,7 @@ async def on_message(message):
         await message.channel.send(str(ounces) + ' ounces of thyme would cost $' + str(price))
 
     # rock paper scissors
-    if messages[0] == '&rps':
+    if is_on and messages[0] == '&rps':
         try:
             if messages[1] == 'rock' or messages[1] == 'paper' or messages[1] == 'scissors':
                 opponent_move = messages[1]
@@ -254,7 +262,7 @@ async def on_message(message):
 
     # tictactoe bot
     # prepares new game
-    if message_sent == '&newttt':
+    if is_on and message_sent == '&newttt':
         await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
         graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
         for _ in range(3):
@@ -264,7 +272,7 @@ async def on_message(message):
         return
     # parses whether the message sent provides a valid tic tac toe board
     isBoard = True
-    if(len(messages) == 9):
+    if is_on and (len(messages) == 9):
         for _ in range(9):
             if messages[_] != 'I':
                 if messages[_] != 'X':
@@ -304,7 +312,7 @@ async def on_message(message):
                 await message.channel.send('We tied')
         return
 
-def dad_joke_generator():
+def dad_joke_generator(messages):
     for i in range(len(messages) - 1):
         word = messages[i].lower()
         next_word = messages[i+1].lower()
@@ -320,7 +328,10 @@ def dad_joke_generator():
 
 def get_quotes_and_names(): 
     if "Quotes and Names" in global_cache:
-        return global_cache[(quotes, names)]
+        quotes, names = global_cache[(quotes, names)]
+        quote = random.choice(quotes)
+        name = random.choice(names)
+        return quote, name
 
     with open("Greg/Quotes/unique_quotes.json") as q:
         quotes_and_names = json.load(q)
@@ -329,8 +340,11 @@ def get_quotes_and_names():
         for i in quotes_and_names["data"]:
             quotes.append(i["quote"])
             names.append("-" + i["author"])
+
     global_cache["Quotes and Names"] = (quotes, names)
-    return (quotes, names)
+    quote = random.choice(quotes)
+    name = random.choice(names)
+    return quote, name
 
 def random_card_generator():
     card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
@@ -338,5 +352,22 @@ def random_card_generator():
     card = random.choice(card_names)
     suit = random.choice(suits)
     return f'Your card is the {card} of {suit}!'
+
+def get_help_info():
+    help_info = [ '&quote: returns a random quote from the 2358 quotes pages \n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality',
+                  '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary',
+                  '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value',
+                  '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)', 
+                  '\n&newttt: provides a blank tic tac toe board and instructions to play' ]
+    return "".join(help_info)
+
+def create_poll(messages):
+    poll_name = ''
+    for message in range(1, len(messages)):
+        poll_name += messages[message] + ' '
+    if not poll_name:
+        return 'poll '
+    return f'**NEW POLL** \n\n{poll_name}\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish \n \n **DO NOT** spam your votes'
+    
 
 client.run(TOKEN)
