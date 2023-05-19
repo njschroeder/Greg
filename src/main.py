@@ -79,105 +79,25 @@ async def on_message(message):
     if is_on and message_sent == '&getresult':
         await message.chanel.send(gather_results())
         return 
-        
+
     # speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
     if is_on and messages[0] == '&createsentence':
-        # creates the ngram dictionary from which the code can pull
-        custom_length = 1
-        dict = {}
-        if len(messages) <= 3:
-            await message.channel.send('Your ngram dictionary is too short! Try again with a longer one')
-            return
-        if messages[len(messages)-1].isnumeric():
-            custom_length = 2
-        for _ in range(1, len(messages) - custom_length):
-            outValue = dict.setdefault(messages[_], [messages[_ + 1]])
-            if outValue != [messages[_ + 1]]:
-                outValue.append(messages[_ + 1])
-                dict.pop(messages[_])
-                dict.setdefault(messages[_], outValue)
-
-        # generates sentence from ngrams provided
-        send_string = ''
-        next_key = messages[1]
-        send_string += next_key
-        length_cap = 15
-        if custom_length == 2:
-            length_cap = int(messages[len(messages)-1])
-        for _ in range(length_cap - 1):
-            try:
-                nextWord = random.choice(dict.get(next_key))
-                send_string += ' ' + nextWord
-                next_key = nextWord
-            except TypeError:
-                await message.channel.send(send_string)
-                return
-                
-        await message.channel.send(send_string)
+        await message.chanel.send(create_sentence(messages))
         return
 
     # thymecheck
     if is_on and message_sent == '&thymecheck':
-        unix_time = time.time()
-        CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
-        seconds = CDT_unix % 86400
-        print(seconds)
-
-        hours_decimal = seconds / 3600
-        hours = int(hours_decimal)
-        seconds = seconds - (hours * 3600)
-        print(hours)
-
-        minutes_decimal = seconds / 60
-        minutes = int(minutes_decimal)
-        print(minutes)
-
-        ounces = (hours * 100) + minutes
-        price_decimal = ounces * 39.7 # uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
-        price_int = int(price_decimal)
-        price = price_int / 100
-        await message.channel.send(str(ounces) + ' ounces of thyme would cost $' + str(price))
+        await message.channel.send(thyme_check())
+        return
 
     # rock paper scissors
     if is_on and messages[0] == '&rps':
-        try:
-            if messages[1] == 'rock' or messages[1] == 'paper' or messages[1] == 'scissors':
-                opponent_move = messages[1]
-                move_list = ['rock', 'paper', 'scissors']
-                bot_move = random.choice(move_list)
-                if opponent_move == 'rock':
-                    if bot_move == 'rock':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
-                    elif bot_move == 'paper':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
-                    elif bot_move == 'scissors':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
-            
-                elif opponent_move == 'paper':
-                    if bot_move == 'rock':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
-                    elif bot_move == 'paper':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
-                    elif bot_move == 'scissors':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
-            
-                elif opponent_move == 'scissors':
-                    if bot_move == 'rock':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. I win!')
-                    elif bot_move == 'paper':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. You win!')
-                    elif bot_move == 'scissors':
-                        await message.channel.send('You used ' + opponent_move + ', and I used ' + bot_move + '. Tie game!')
-        
-            else:
-                await message.channel.send('Error! No valid move provided. Please provide a valid move')
-        
-        except IndexError:
-            await message.channel.send('Error! No valid move provided. Please provide a valid move')
+        await message.chanel.send(rock_paper_scissors(messages))
+        return
 
     print(messages)
 
-    # tictactoe bot
+    # TIC-TAC-TOE BOT
     # prepares new game
     if is_on and message_sent == '&newttt':
         await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
@@ -378,5 +298,92 @@ def gather_results():
     f1.close()
     f2.close()
     return message
+
+def create_sentence(messages):
+    # creates the ngram dictionary from which the code can pull
+        custom_length = 1
+        words = {}
+        if len(messages) <= 3:
+            return 'Your ngram dictionary is too short! Try again with a longer one'
+        if messages[len(messages)-1].isnumeric():
+            custom_length = 2
+        for _ in range(1, len(messages) - custom_length):
+            outValue = words.setdefault(messages[_], [messages[_ + 1]])
+            if outValue != [messages[_ + 1]]:
+                outValue.append(messages[_ + 1])
+                words.pop(messages[_])
+                words.setdefault(messages[_], outValue)
+
+        # generates sentence from ngrams provided
+        send_string = ''
+        next_key = messages[1]
+        send_string += next_key
+        length_cap = 15
+        if custom_length == 2:
+            length_cap = int(messages[len(messages)-1])
+        for _ in range(length_cap - 1):
+            try:
+                nextWord = random.choice(dict.get(next_key))
+                send_string += ' ' + nextWord
+                next_key = nextWord
+            except TypeError:
+                return send_string             
+        return send_string
+
+def thyme_check():
+    unix_time = time.time()
+    CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
+    seconds = CDT_unix % 86400
+    print(seconds)
+
+    hours_decimal = seconds / 3600
+    hours = int(hours_decimal)
+    seconds = seconds - (hours * 3600)
+    print(hours)
+
+    minutes_decimal = seconds / 60
+    minutes = int(minutes_decimal)
+    print(minutes)
+
+    ounces = (hours * 100) + minutes
+    price_decimal = ounces * 39.7 # uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
+    price_int = int(price_decimal)
+    price = price_int / 100
+    return f'{ounces} ounces of thyme would cost ${price}'
+
+def rock_paper_scissors(messages):
+    error = 'Error! No valid move provided. Please provide a valid move'
+    try:
+        if messages[1] == 'rock' or messages[1] == 'paper' or messages[1] == 'scissors':
+            opponent_move = messages[1]
+            move_list = ['rock', 'paper', 'scissors']
+            bot_move = random.choice(move_list)
+            if opponent_move == 'rock':
+                if bot_move == 'rock':
+                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+                elif bot_move == 'paper':
+                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
+                elif bot_move == 'scissors':
+                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
+        
+            elif opponent_move == 'paper':
+                if bot_move == 'rock':
+                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
+                elif bot_move == 'paper':
+                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+                elif bot_move == 'scissors':
+                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
+
+            elif opponent_move == 'scissors':
+                if bot_move == 'rock':
+                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
+                elif bot_move == 'paper':
+                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
+                elif bot_move == 'scissors':
+                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+            else:
+                return error
+    except IndexError:
+        return error
 
 client.run(TOKEN)
