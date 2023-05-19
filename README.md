@@ -1,24 +1,19 @@
 # Greg
-Repository for my discord bot Greg
+A repository for a discord bot named Greg
 
-At this point, please do not spam the poll function with votes. If you go fast enough, it can unintentionally log more than one vote for a single user. I do plan to fix this in a later update
+## Features
+- Help Command
+- Dad Joke Generator
+- Random Quote Generator 
+- Random Card Generator
+- Poll Creation
+- Sentence Creator 
+- Thymecheck 
+- Ability to play Rock Paper Scissors
+- Ability to play Tic-Tac-Toe
 
-The ability to play tic tac toe runs off of a slightly modified version of TicTacToeMaster.py coming from navdeeshahuja/Python-TicTacToe-Best-Move-Generator-Artificial-Intelligence-Minimax. The following copyright statement is required:
+## Future Plans
+- At this point, please do not spam the poll function with votes. If you go fast enough, it can unintentionally log more than one vote for a single user. I do plan to fix this in a later update.
 
-# Copyright (c) 2017 Navdeesh Ahuja
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: 
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-All quotes from https://github.com/mubaris/motivate. The following copyright statement is required:
-
-# MIT License
-
-# Copyright (c) 2017 Mubaris Hassan
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+All copyright statements are in COPYRIGHT.md
 
