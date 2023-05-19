@@ -72,97 +72,14 @@ async def on_message(message):
 
     # handles all necessary operations for vote reception
     if is_on and message_sent == 'Y' or message_sent == 'N':
-        # determines which file code should read and which to manipulate
-        key_1 = 'ResultStore1.txt'
-        key_2 = 'ResultStore2.txt'
-        read_key = ''
-        f1 = open(key_1, 'r')
-        f2 = open(key_2, 'r')
-        f1_contents = f1.read()
-        f2_contents = f2.read()
-        f2_0 = None
-        if f1_contents == '' and f2_contents == '':
-            read_key = key_1
-            write_key = key_2
-            f2_0 = open(key_2, 'w')
-        elif f1_contents == '':
-            read_key = key_2
-            write_key = key_1
-        elif f2_contents == '':
-            read_key = key_1
-            write_key = key_2
-        else:
-            await message.channel.send('Error! Could not determine proper file to contact. Please launch a new poll')
-
-        # records vote (making sure to not allow double votes)
-        vote_store = open(read_key, 'r')
-        writeable_votes = open(write_key, 'a')
-        yet_to_vote = True
-        voteString = vote_store.read()
-        votes = voteString.split()
-        for i in range(len(votes)):
-            try:
-                if votes[i - 1] == username:
-                    writeable_votes.write(f' {message_sent} ')
-                    yet_to_vote = False
-                else:
-                    writeable_votes.write(votes[i])
-            except IndexError:
-                writeable_votes.write(votes[i])
-        if yet_to_vote:
-            writeable_votes.write(username + ' ' + message_sent + ' ')
-        with open(read_key, 'w') as _:
-            pass
-        if message_sent == 'Y':
-            await message.channel.send(f'{username}, you have updated your vote to yes on this poll')
-        if message_sent == 'N':
-            await message.channel.send(f'{username}, you have updated your vote to no on this poll')
-        f1.close()
-        f2.close()
-        if f2_0:
-            f2_0.close()
-        vote_store.close()
-        writeable_votes.close()
+        await message.channel.send(vote_reception())
         return
     
     # gathers results and returns an answer
     if is_on and message_sent == '&getresult':
-        check_correct = True
-        votecounts = [0, 0]
-        key_1 = 'ResultStore1.txt'
-        key_2 = 'ResultStore2.txt'
-        f1 = open(key_1, 'r')
-        f2 = open(key_2, 'r')
-        f1_contents = f1.read()
-        f2_contents = f2.read()
-        read_key = ''
-        if f1_contents == '' and f2_contents == '':
-            await message.channel.send('Error! No votes logged')
-        if f1_contents == '':
-            vote_store = f2_contents
-        elif f2_contents == '':
-            vote_store = f1_contents
-        else:
-            await message.channel.send('Error! Votes logged incorrectly. Please launch a new poll')
-        votes = vote_store.split()
-        # checks vote assortment to ensure that nobody has multiple votes
-        for i in range(0, len(votes), 2):
-            for a in range(i + 2, len(votes), 2):
-                if votes[i] == votes[a]:
-                    await message.channel.send('Error! Someone has multiple votes logged. Please launch a new poll')
-                    check_correct = False
-                    return
-        if check_correct:
-            for i in range(1, len(votes), 2):
-                if votes[i] == 'Y':
-                    votecounts[0] += 1
-                elif votes[i] == 'N':
-                    votecounts[1] += 1
-            await message.channel.send('the supporters count ' + str(votecounts[0]) + ' the opponents count ' + str(votecounts[1]))
-            return
-        f1.close()
-        f2.close()
-
+        await message.chanel.send(gather_results())
+        return 
+        
     # speech replicator - uses an input ngram dictionary to attempt to create new sentences that could exist from it
     if is_on and messages[0] == '&createsentence':
         # creates the ngram dictionary from which the code can pull
@@ -368,6 +285,98 @@ def create_poll(messages):
     if not poll_name:
         return 'poll '
     return f'**NEW POLL** \n\n{poll_name}\n \nSend "Y" to vote yes and "N" to vote no. I will confirm that your vote has been received in chat. You *can* change your vote later if you so wish \n \n **DO NOT** spam your votes'
-    
+
+def vote_reception():
+    # determines which file code should read and which to manipulate
+    key_1 = 'ResultStore1.txt'
+    key_2 = 'ResultStore2.txt'
+    read_key = ''
+    f1 = open(key_1, 'r') 
+    f2 = open(key_2, 'r')
+    f1_contents = f1.read()
+    f2_contents = f2.read()
+    f2_0 = None
+    message = ''
+    if f1_contents == '' and f2_contents == '':
+        read_key = key_1
+        write_key = key_2
+        f2_0 = open(key_2, 'w')
+    elif f1_contents == '':
+        read_key = key_2
+        write_key = key_1
+    elif f2_contents == '':
+        read_key = key_1
+        write_key = key_2
+    else:
+        message = 'Error! Could not determine proper file to contact. Please launch a new poll'
+
+    # records vote (making sure to not allow double votes)
+    vote_store = open(read_key, 'r')
+    writeable_votes = open(write_key, 'a')
+    yet_to_vote = True
+    voteString = vote_store.read()
+    votes = voteString.split()
+    for idx, val in enumerate(votes):
+        try:
+            if votes[idx - 1] == username:
+                writeable_votes.write(f' {message_sent} ')
+                yet_to_vote = False
+            else:
+                writeable_votes.write(val)
+        except IndexError:
+            writeable_votes.write(val)
+    if yet_to_vote:
+        writeable_votes.write(f'{username} : {message_sent}')
+    with open(read_key, 'w') as _:
+        pass
+    if message_sent == 'Y':
+        message = f'{username}, you have updated your vote to yes on this poll'
+    if message_sent == 'N':
+        message = f'{username}, you have updated your vote to no on this poll'
+    f1.close()
+    f2.close()
+    if f2_0:
+        f2_0.close()
+    vote_store.close()
+    writeable_votes.close()
+    return message
+
+def gather_results():
+    check_correct = True
+    vote_counts = [0, 0]
+    key_1 = 'ResultStore1.txt'
+    key_2 = 'ResultStore2.txt'
+    f1 = open(key_1, 'r')
+    f2 = open(key_2, 'r')
+    f1_contents = f1.read()
+    f2_contents = f2.read()
+    read_key = ''
+    message = 'Nothing happened :/'
+    if f1_contents == '' and f2_contents == '':
+        message = 'Error! No votes logged'
+    if f1_contents == '':
+        vote_store = f2_contents
+    elif f2_contents == '':
+        vote_store = f1_contents
+    else:
+        message = 'Error! Votes logged incorrectly. Please launch a new poll'
+    votes = vote_store.split()
+    # checks vote assortment to ensure that nobody has multiple votes
+    for i in range(0, len(votes), 2):
+        for a in range(i + 2, len(votes), 2):
+            if votes[i] == votes[a]:
+                message = 'Error! Someone has multiple votes logged. Please launch a new poll'
+                check_correct = False
+                return
+    if check_correct:
+        for i in range(1, len(votes), 2):
+            if votes[i] == 'Y':
+                vote_counts[0] += 1
+            elif votes[i] == 'N':
+                vote_counts[1] += 1
+        message = f'the supporters count {vote_counts[0]} the opponents count {vote_counts[1]}' 
+    f1.close()
+    f2.close()
+    return message
 
 client.run(TOKEN)
