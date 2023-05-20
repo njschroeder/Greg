@@ -1,4 +1,5 @@
 import string, discord, random, time, json
+from collections import Counter
 from discord import Intents
 import TicTacToeMaster as ttt 
 
@@ -60,7 +61,7 @@ async def on_message(message):
         return
 
     # activate fishgpt
-    if is_on and message[0] == "&fishgpt":
+    if is_on and messages[0] == "&fishgpt":
         await message.channel.send('fish ' * random.randint(10, 30))
         return 
 
@@ -96,9 +97,9 @@ async def on_message(message):
         return
 
     # suggestions
-    if is_on and message[0] == "&suggestions":
+    if is_on and messages[0] == "&suggestions":
         with open("src/suggestions.txt", "a") as f:
-            f.write(f"{username_with_tag} : {message[1:]}")
+            f.write(f"{username_with_tag} : {messages[1:]}")
         await message.chanel.send("Thanks for your suggestion!")
         return 
     
@@ -113,14 +114,21 @@ async def on_message(message):
         return
     
     # verify a user's password
-    if message[0] == '&verifypassword':
+    if messages[0] == '&verifypassword':
         await message.channel.send("Your password is not secure...Seeing how your password isn't secure I think it's best I check whether your social security number and credit card information is secure.")
         return
     
     # counting with greg - W.I.P
-    if message_sent == "&count":
+    if is_on and message_sent == "&count":
         await message.channel.send(count())
         return 
+
+    if is_on and messages[0] == "&areanagrams":
+        if len(messages) >= 4:
+            await message.channel.send("Too many arguments, try two words...")
+            return
+        await message.channel.send(is_anagrams(messages[1], messages[2]))
+        return
     print(messages)
 
     # TIC-TAC-TOE BOT - W.I.P
@@ -420,4 +428,8 @@ def count():
     curr = global_cache["count"]
     global_cache["count"] += 1
     return str(curr + 1)
+
+def is_anagrams(word1, word2):
+    return sorted((k, v) for k, v in Counter(word1).items()) == sorted((k, v) for k, v in Counter(word2).items())
+
 client.run(TOKEN)

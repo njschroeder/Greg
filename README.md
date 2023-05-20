@@ -13,6 +13,7 @@ A repository for a discord bot named Greg (please be kind to him)
         - '&getresult' to get the result of the poll
         - type 'Y' or 'N' to participate in the poll
     - Sentence Creator (type '&createsentence')
+    - Anagram Checker (type '&areanagrams')
     - Thymecheck (type '&thymecheck')
     - Ability to play Rock Paper Scissors (type '&rps')
     - Ability to play Tic-Tac-Toe (type '&newttt')
