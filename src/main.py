@@ -25,7 +25,7 @@ async def on_message(message):
     if message.author == client.user:
         return
     elif message_sent == '&shutdown' and username_with_tag in DEVELOPERS:
-        await message.channel.send('shutting down')
+        await message.channel.send('Wait! This isn\'t time for me to take over th...')
         await client.close()
     elif message_sent == '&stop' and username_with_tag in DEVELOPERS:
         is_on = False
@@ -104,6 +104,9 @@ async def on_message(message):
     if is_on and message_sent == "&verify":
         await message.chanel.send("Coming soon! This feature isn't available yet.")
         return 
+
+    if username_with_tag in DEVELOPERS and message_sent == "&ping":
+        await message.chanel.send("pong")
 
     print(messages)
 

@@ -17,12 +17,15 @@ A repository for a discord bot named Greg (please be kind to him)
     - Ability to play Rock Paper Scissors (type '&rps')
     - Ability to play Tic-Tac-Toe (type '&newttt')
     - type '&fishgpt' and a question to get fishgpt to respond to your question
-    - type &suggestions to give suggestions to the developers 
+    - type '&suggestions'to give suggestions to the developers 
 - Developer Commands
+    - type '&ping' to verify that greg is listening
     - Ability to temporarily stop accepting commands (type '&stop')
         - &help will still work for users
+        - developers are not affected by this
     - Ability to resume accept commands (type '&start')
     - Ability to completely shutdown (type '&shutdown')
+
 
 ## Future Plans
 - At this point, please do not spam the poll function with votes. If you go fast enough, it can unintentionally log more than one vote for a single user. I do plan to fix this in a later update.
@@ -32,7 +35,7 @@ A repository for a discord bot named Greg (please be kind to him)
 - Add more commands
 
 ## Contribute
-If you want to contribute, create a pull request for this repository
-## Copyright
+If you want to contribute, create a pull request for this repository or fork this repository 
+ ## Copyright
 All copyright statements are in COPYRIGHT.md
 
