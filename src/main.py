@@ -2,7 +2,7 @@ import string, discord, random, time, json
 from discord import Intents
 import TicTacToeMaster as ttt 
 
-TOKEN, DEVELOPER = 'YOUR TOKEN HERE', 'pandomains#5375'
+TOKEN, DEVELOPERS = 'YOUR TOKEN HERE', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.message_content = True
@@ -11,7 +11,7 @@ global_cache = {}
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-
+ 
 @client.event
 async def on_message(message):
     username_with_tag = str(message.author)
@@ -24,12 +24,12 @@ async def on_message(message):
 
     if message.author == client.user:
         return
-    elif message_sent == '&shutdown' and username_with_tag == DEVELOPER:
+    elif message_sent == '&shutdown' and username_with_tag in DEVELOPERS:
         await message.channel.send('shutting down')
         await client.close()
-    elif message_sent == '&stop' and username_with_tag == DEVELOPER:
+    elif message_sent == '&stop' and username_with_tag in DEVELOPERS:
         is_on = False
-    elif message_sent == '&start' and username_with_tag == DEVELOPER:
+    elif message_sent == '&start' and username_with_tag in DEVELOPERS:
         is_on = True
 
     # dad joke generator
@@ -41,7 +41,7 @@ async def on_message(message):
     # quotes sender
     if is_on and message_sent == '&quote':
         quote, name = get_quotes_and_names()
-        await message.channel.send(f"{quote}\n'\n {name}")
+        await message.channel.send(f"{quote}\n'\n{name}")
         return
 
     # random card generator
@@ -95,6 +95,16 @@ async def on_message(message):
         await message.chanel.send(rock_paper_scissors(messages))
         return
 
+    if is_on and message[0] == "&suggestions":
+        with open("src/suggestions.txt", "a") as f:
+            f.write(f"{username_with_tag} : {message[1:]}")
+        await message.chanel.send("Thanks for your suggestion!")
+        return 
+    
+    if is_on and message_sent == "&verify":
+        await message.chanel.send("Coming soon! This feature isn't available yet.")
+        return 
+
     print(messages)
 
     # TIC-TAC-TOE BOT
@@ -102,18 +112,18 @@ async def on_message(message):
     if is_on and message_sent == '&newttt':
         await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
         graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
-        for _ in range(3):
-            printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
+        for i in range(3):
+            printTuple = (graphic[3 * i], graphic[(3 * i) + 1], graphic[(3 * i) + 2])
             builtMessage = "    ".join(printTuple)
             await message.channel.send(builtMessage)
         return
     # parses whether the message sent provides a valid tic tac toe board
     isBoard = True
     if is_on and (len(messages) == 9):
-        for _ in range(9):
-            if messages[_] != 'I':
-                if messages[_] != 'X':
-                    if messages[_] != 'O':
+        for i in range(9):
+            if messages[i] != 'I':
+                if messages[i] != 'X':
+                    if messages[i] != 'O':
                         isBoard = False
         # Translates inputs to what the bot understands, calls for AI move
         if isBoard:
@@ -128,11 +138,11 @@ async def on_message(message):
             newBoard[aiMovePosition] = "O"
             # inserts the AI move and produces an output to be sent to chat, as well as any game-ending declarations
             graphic = ttt.printBoard(newBoard)
-            for _ in range(3):
-                printTuple = (graphic[3 * _], graphic[(3 * _) + 1], graphic[(3 * _) + 2])
+            for i in range(3):
+                printTuple = (graphic[3 * i], graphic[(3 * i) + 1], graphic[(3 * i) + 2])
                 playCount = 0
-                for i in range(3):
-                    if printTuple[i] != 'I':
+                for j in range(3):
+                    if printTuple[j] != 'I':
                         playCount += 1
                 if playCount == 0:
                     builtMessage = "    ".join(printTuple)

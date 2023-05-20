@@ -17,6 +17,7 @@ A repository for a discord bot named Greg (please be kind to him)
     - Ability to play Rock Paper Scissors (type '&rps')
     - Ability to play Tic-Tac-Toe (type '&newttt')
     - type '&fishgpt' and a question to get fishgpt to respond to your question
+    - type &suggestions to give suggestions to the developers 
 - Developer Commands
     - Ability to temporarily stop accepting commands (type '&stop')
         - &help will still work for users
