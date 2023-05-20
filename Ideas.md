@@ -11,3 +11,8 @@ Watch tutorials on how to draw a box where tic-tac-toe is inside and how to use 
 # Reading discord.py docs
 The title says it all
 - read discord.py docs to get more ideas 
+
+# Integrate ai into greg 
+- One example would be having a conservation with users 
+## To Do
+- read documentation for openai api

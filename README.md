@@ -1,7 +1,7 @@
 # Greg
 A repository for a discord bot named Greg (please be kind to him)
 
-## Features
+## Commands
 - User Commands
     - Help Command (type '&help')
     - Dad Joke Generator (type 'i am' or 'i'm' or 'im', uppercase or lowercase is accepted)
@@ -18,10 +18,12 @@ A repository for a discord bot named Greg (please be kind to him)
     - Ability to play Tic-Tac-Toe (type '&newttt')
     - type '&fishgpt' and a question to get fishgpt to respond to your question
     - type '&suggestions'to give suggestions to the developers 
+    - type '&verifypassword' and greg will tell you if your discord password is secure
+    - type '&count' to make greg count 
 - Developer Commands
     - type '&ping' to verify that greg is listening
     - Ability to temporarily stop accepting commands (type '&stop')
-        - &help will still work for users
+        - '&help' and '&verifypassword' will still work for users
         - developers are not affected by this
     - Ability to resume accept commands (type '&start')
     - Ability to completely shutdown (type '&shutdown')
@@ -36,6 +38,6 @@ A repository for a discord bot named Greg (please be kind to him)
 
 ## Contribute
 If you want to contribute, create a pull request for this repository or fork this repository 
- ## Copyright
+## Copyright
 All copyright statements are in COPYRIGHT.md
 

@@ -95,22 +95,35 @@ async def on_message(message):
         await message.chanel.send(rock_paper_scissors(messages))
         return
 
+    # suggestions
     if is_on and message[0] == "&suggestions":
         with open("src/suggestions.txt", "a") as f:
             f.write(f"{username_with_tag} : {message[1:]}")
         await message.chanel.send("Thanks for your suggestion!")
         return 
     
-    if is_on and message_sent == "&verify":
+    # verify developer
+    if username_with_tag in DEVELOPERS and message_sent == "&verify":
         await message.chanel.send("Coming soon! This feature isn't available yet.")
         return 
 
+    # check if greg is active
     if username_with_tag in DEVELOPERS and message_sent == "&ping":
         await message.chanel.send("pong")
-
+        return
+    
+    # verify a user's password
+    if message[0] == '&verifypassword':
+        await message.channel.send("Your password is not secure...Seeing how your password isn't secure I think it's best I check whether your social security number and credit card information is secure.")
+        return
+    
+    # counting with greg - W.I.P
+    if message_sent == "&count":
+        await message.channel.send(count())
+        return 
     print(messages)
 
-    # TIC-TAC-TOE BOT
+    # TIC-TAC-TOE BOT - W.I.P
     # prepares new game
     if is_on and message_sent == '&newttt':
         await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
@@ -399,4 +412,12 @@ def rock_paper_scissors(messages):
     except IndexError:
         return error
 
+def count():
+    # check if greg has counted before
+    if "count" not in global_cache:
+        global_cache["count"] = 1
+        return "0"
+    curr = global_cache["count"]
+    global_cache["count"] += 1
+    return str(curr + 1)
 client.run(TOKEN)
