@@ -18,7 +18,7 @@ A repository for a discord bot named Greg (please be kind to him)
     - Ability to play Rock Paper Scissors (type '&rps')
     - Ability to play Tic-Tac-Toe (type '&newttt')
     - type '&fishgpt' and a question to get fishgpt to respond to your question
-    - type '&suggestions'to give suggestions to the developers 
+    - type '&suggestion'to give suggestions to the developers 
     - type '&verifypassword' and greg will tell you if your discord password is secure
     - type '&count' to make greg count 
 - Developer Commands
@@ -28,6 +28,7 @@ A repository for a discord bot named Greg (please be kind to him)
         - developers are not affected by this
     - Ability to resume accept commands (type '&start')
     - Ability to completely shutdown (type '&shutdown')
+    - type '&bruh [user_name]' to bruh at username
 
 
 ## Future Plans

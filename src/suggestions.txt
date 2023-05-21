@@ -1,1 +1,7 @@
 Format is Username_With_Tag : Suggestion
+convexpine#8680 : ['make', 'fishgpt', 'tell', 'something', 'other', 'than', 'fish']
+convexpine#8680 : ['damn', 'it', 'works']
+pandomains#5375 : make it answer entirely in FRC team numbers
+convexpine#8680 : test
+convexpine#8680 : fix count
+convexpine#8680 : fix tac-tac-toe
