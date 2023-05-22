@@ -4,3 +4,5 @@
 - Improve current games
 - Add more games
 - Add more commands
+- Add more developer commands
+- Add moderator support 

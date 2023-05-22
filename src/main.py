@@ -4,7 +4,7 @@ from discord.ext import commands
 import TicTacToeMaster as ttt 
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = 'YOUR TOKEN HERE', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = 'MTEwOTg5MDM0MjI2MzczMDI3Ng.GEFJhN.YZX5e_8aLAVKmPgxc-9NIxuyo-aHpHWNx-EDog', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
@@ -38,6 +38,16 @@ async def on_message(message):
         return
     elif message_sent == '&start' and username_with_tag in DEVELOPERS:
         global_cache["is_on"] = True
+        return
+    
+    # watched for counting
+    if global_cache["is_on"] and message_sent.isdigit(): 
+        if "count" not in global_cache:
+            global_cache["count"] = 1
+        else:
+            if int(message_sent) <= global_cache["count"]:
+                return
+            global_cache["count"] += 1
         return
 
     # bruh at a person
@@ -136,10 +146,15 @@ async def on_message(message):
         await message.channel.send("Your password is not secure...Seeing how your password isn't secure I think it's best I check whether your social security number and credit card information is secure.")
         return
     
-    # counting with greg - W.I.P
-    if global_cache["is_on"] and message_sent == "&count":
-        await message.channel.send(count())
-        return 
+    # counting with greg 
+    if global_cache["is_on"] and messages[0] == "&count":
+        if len(messages) == 2:
+            await message.channel.send(count(messages, messages[1], username_with_tag))
+        elif len(messages) == 1:
+            await message.channel.send(count())
+        else:
+            await message.channel.send("You have too many parameters. Do &count [number between 1-25].")
+        return
 
     if global_cache["is_on"] and messages[0] == "&areanagrams":
         if len(messages) >= 4:
@@ -438,14 +453,32 @@ def rock_paper_scissors(messages):
     except IndexError:
         return error
 
-def count():
+def count(messages=["&count"], n="1", username_with_tag=""):
+    valid_number = n.isdigit()
+    if not valid_number:
+        if messages[1] == "--reset" and username_with_tag in DEVELOPERS:
+            if "count" in global_cache:
+                del global_cache["count"] 
+                return "The count has been reset to 1."
+            return "Nobody has counted yet."
+        elif messages[1] == "--reset":
+            return "You are not a developer."
+        return "Your second parameter is not a number or is negative. Choose a number between 1-25."
+    n = int(n)
+    if n == 0 or n > 25:
+        return "Enter a number between 1-25."
+
     # check if greg has counted before
     if "count" not in global_cache:
         global_cache["count"] = 1
-        return "0"
-    curr = global_cache["count"]
+        return "1"
+
     global_cache["count"] += 1
-    return str(curr)
+    count_res = str(global_cache["count"])
+    for i in range(n - 1):
+        global_cache["count"] += 1
+        count_res += "\n" + str(global_cache["count"]) 
+    return count_res
 
 def is_anagrams(word1, word2):
     are_anagrams = sorted(word1) == sorted(word2)

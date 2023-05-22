@@ -20,13 +20,19 @@ A repository for a discord bot named Greg (please be kind to him)
     - type '&fishgpt' and a question to get fishgpt to respond to your question
     - type '&suggestion' to give suggestions to the developers 
     - type '&verifypassword' and greg will tell you if your discord password is secure
-    - type '&count' to make greg count 
+    - Count with Greg
+        - User Commands
+            - type '&count' to start counting at 1
+            - Greg will watch messages so users can count with greg
+            - type '&count [number between 1-25]' to speed up counting 
+        - Moderator (Developer for now) Commands
+            - type '&count --reset' to reset count to 1
 - Developer Commands
     - type '&ping' to verify that greg is listening
     - Ability to temporarily stop accepting commands (type '&stop')
         - '&help' and '&verifypassword' will still work for users
         - developers are not affected by this
-    - Ability to resume accept commands (type '&start')
+    - Ability to resume commands (type '&start')
     - Ability to completely shutdown (type '&shutdown')
     - type '&bruh [user_name]' to bruh at username
 

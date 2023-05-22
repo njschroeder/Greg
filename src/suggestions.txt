@@ -2,6 +2,5 @@ Format is Username_With_Tag : Suggestion
 
 pandomains#5375 : make it answer entirely in FRC team numbers
 convexpine#8680 : test
-convexpine#8680 : fix count
 convexpine#8680 : fix tac-tac-toe
 convexpine#8680 : make poll with emoji reaction
