@@ -27,6 +27,7 @@ A repository for a discord bot named Greg (please be kind to him)
             - type '&count [number between 1-25]' to speed up counting 
         - Moderator (Developer for now) Commands
             - type '&count --reset' to reset count to 1
+            - type '&count --limit' [number] to set the limit of &count [number between 1-your limit]. The limit can only be between 1-400.
 - Developer Commands
     - type '&ping' to verify that greg is listening
     - Ability to temporarily stop accepting commands (type '&stop')

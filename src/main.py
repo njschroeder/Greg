@@ -4,7 +4,7 @@ from discord.ext import commands
 import TicTacToeMaster as ttt 
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = 'Your Token Here', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = 'Your token here', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
@@ -12,6 +12,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 global_cache = {}
 global_cache["is_on"] = True
+global_cache["count_limit"] = 25
 
 @client.event
 async def on_ready():
@@ -38,16 +39,6 @@ async def on_message(message):
         return
     elif message_sent == '&start' and username_with_tag in DEVELOPERS:
         global_cache["is_on"] = True
-        return
-    
-    # watched for counting
-    if global_cache["is_on"] and message_sent.isdigit(): 
-        if "count" not in global_cache:
-            global_cache["count"] = 1
-        else:
-            if int(message_sent) <= global_cache["count"]:
-                return
-            global_cache["count"] += 1
         return
 
     # bruh at a person
@@ -146,9 +137,30 @@ async def on_message(message):
         await message.channel.send("Your password is not secure...Seeing how your password isn't secure I think it's best I check whether your social security number and credit card information is secure.")
         return
     
+    # watch for counting
+    if global_cache["is_on"] and message_sent.isdigit(): 
+        if "count" not in global_cache:
+            global_cache["count"] = 1
+        else:
+            if int(message_sent) <= global_cache["count"]:
+                return
+            global_cache["count"] += 1
+        return
     # counting with greg 
     if global_cache["is_on"] and messages[0] == "&count":
-        if len(messages) == 2:
+        if len(messages) == 3:
+            if messages[1] == "--limit":
+                new_limit = messages[2]
+                if new_limit.isdigit() and int(new_limit) >= 1:
+                    new_limit = int(new_limit)
+                    if new_limit > 400:
+                        await message.channel.send(f"Your limit is too big for discord...")
+                    else:
+                        global_cache["count_limit"] = new_limit
+                        await message.channel.send(f"The new limit is {new_limit}.")
+                else:
+                    await message.channel.send("Please provide a valid positive number 1-400.")
+        elif len(messages) == 2:
             await message.channel.send(count(messages, messages[1], username_with_tag))
         elif len(messages) == 1:
             await message.channel.send(count())
@@ -465,16 +477,18 @@ def count(messages=["&count"], n="1", username_with_tag=""):
             return "You are not a developer."
         return "Your second parameter is not a number or is negative. Choose a number between 1-25."
     n = int(n)
-    if n == 0 or n > 25:
-        return "Enter a number between 1-25."
+    if n == 0 or n > global_cache["count_limit"]:
+        return f"Enter a number between 1-{global_cache['count_limit']}."
 
     # check if greg has counted before
+    count_res = ""
     if "count" not in global_cache:
+        count_res += "1\n"
         global_cache["count"] = 1
-        return "1"
+        n -= 1
 
     global_cache["count"] += 1
-    count_res = str(global_cache["count"])
+    count_res += str(global_cache["count"])
     for i in range(n - 1):
         global_cache["count"] += 1
         count_res += "\n" + str(global_cache["count"]) 
