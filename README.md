@@ -18,7 +18,7 @@ A repository for a discord bot named Greg (please be kind to him)
     - Ability to play Rock Paper Scissors (type '&rps')
     - Ability to play Tic-Tac-Toe (type '&newttt')
     - type '&fishgpt' and a question to get fishgpt to respond to your question
-    - type '&suggestion'to give suggestions to the developers 
+    - type '&suggestion' to give suggestions to the developers 
     - type '&verifypassword' and greg will tell you if your discord password is secure
     - type '&count' to make greg count 
 - Developer Commands
@@ -32,11 +32,7 @@ A repository for a discord bot named Greg (please be kind to him)
 
 
 ## Future Plans
-- At this point, please do not spam the poll function with votes. If you go fast enough, it can unintentionally log more than one vote for a single user. I do plan to fix this in a later update.
-- Automatically verifying and adding developers to access commands (currently hard coded)
-- Improve current games
-- Add more games
-- Add more commands
+All future plans are located inside Future.md inside the information folder
 
 ## Contribute
 If you want to contribute, create a pull request for this repository or fork this repository 

@@ -53,6 +53,7 @@ async def on_message(message):
     if global_cache["is_on"] and dad_joke:
         await message.channel.send(dad_joke)
         return 
+    
     # quotes sender
     if global_cache["is_on"] and message_sent == '&quote':
         quote, name = get_quotes_and_names()
