@@ -56,7 +56,7 @@ async def on_message(message):
     # quotes sender
     if global_cache["is_on"] and message_sent == '&quote':
         quote, name = get_quotes_and_names()
-        await message.channel.send(f"{quote}\n'\n{name}")
+        await message.channel.send(f"'{quote}'\n{name}")
         return
 
     # random card generator
