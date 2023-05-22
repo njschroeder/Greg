@@ -4,7 +4,7 @@ from discord.ext import commands
 import TicTacToeMaster as ttt 
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = 'MTEwOTg5MDM0MjI2MzczMDI3Ng.GEFJhN.YZX5e_8aLAVKmPgxc-9NIxuyo-aHpHWNx-EDog', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = 'Your Token Here', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
