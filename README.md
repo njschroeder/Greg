@@ -3,35 +3,35 @@ A repository for a discord bot named Greg (please be kind to him)
 
 ## Commands
 - User Commands
-    - Help Command (type '&help')
-    - Dad Joke Generator (type 'i am' or 'i'm' or 'im', uppercase or lowercase is accepted)
+    - Help Command (type '&help_info')
+    - Dad Joke Generator (type 'i am' or 'i'm' or 'im', uppercase or lowercase is accepted). This is temporarily disabled.
     - Random Quote Generator (type '&quote'; is cached)
-    - Random Card Generator (type '&drawcard')
-    - Poll Creation 
-        - type '&pollhelp' for help
-        - type '&newpoll [your poll name]' to create a new poll with the name 'your poll name' (your poll name is optional)
-        - '&getresult' to get the result of the poll
+    - Random Card Generator (type '&draw_card')
+    - Poll Creation (temporarily disabled)
+        - type '&poll_help' for help
+        - type '&new_poll [your poll name]' to create a new poll with the name 'your poll name' (your poll name is optional)
+        - '&get_result' to get the result of the poll
         - type 'Y' or 'N' to participate in the poll
-    - Sentence Creator (type '&createsentence')
-    - Anagram Checker (type '&areanagrams')
-    - Thymecheck (type '&thymecheck')
+    - Sentence Creator (type '&create_sentence') (temporarily disabled)
+    - Anagram Checker (type '&are_anagrams')
+    - Thyme_check (type '&thyme_check')
     - Ability to play Rock Paper Scissors (type '&rps')
-    - Ability to play Tic-Tac-Toe (type '&newttt')
-    - type '&fishgpt' and a question to get fishgpt to respond to your question
+    - Ability to play Tic-Tac-Toe (type '&ttt') (temporarily disabled)
+    - type '&fish_gpt' and a question to get fish_gpt to respond to your question
     - type '&suggestion' to give suggestions to the developers 
-    - type '&verifypassword' and greg will tell you if your discord password is secure
+    - type '&verify_password' and greg will tell you if your discord password is secure
     - Count with Greg
         - User Commands
             - type '&count' to start counting at 1
             - Greg will watch messages so users can count with greg
             - type '&count [number between 1-25]' to speed up counting 
         - Moderator (Developer for now) Commands
-            - type '&count --reset' to reset count to 1
-            - type '&count --limit' [number] to set the limit of &count [number between 1-your limit]. The limit can only be between 1-400.
+            - type '&count -r' to reset count to 1
+            - type '&count -l' [number] to set the limit of &count [number between 1-your limit]. The limit can only be between 1-400.
 - Developer Commands
     - type '&ping' to verify that greg is listening
     - Ability to temporarily stop accepting commands (type '&stop')
-        - '&help' and '&verifypassword' will still work for users
+        - '&help' and '&verify_password' will still work for users
         - developers are not affected by this
     - Ability to resume commands (type '&start')
     - Ability to completely shutdown (type '&shutdown')

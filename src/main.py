@@ -9,18 +9,328 @@ TOKEN, DEVELOPERS = 'Your token here', ('pandomains#5375', "convexpine#8680")
 intents = Intents.default()
 intents.members = True
 intents.message_content = True
-client = discord.Client(intents=intents)
 global_cache = {}
 global_cache["is_on"] = True
 global_cache["count_limit"] = 25
 
-@client.event
-async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
-    global_cache["server"] = [member for guild in client.guilds for member in guild.members]
+bot = commands.Bot(command_prefix='&', intents=intents)
+
+# SPECIAL FUNCTIONS
+
+# STARTUP   
+@bot.event
+async def on_ready():   
+    print('We have logged in as {0.user}'.format(bot))
+    global_cache["server"] = [member for guild in bot.guilds for member in guild.members]
     global_cache["member_display_names"] =  [member.display_name for member in global_cache["server"]]
- 
-@client.event
+    del global_cache["server"]
+
+# COMMAND NOT FOUND
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send("That is not a valid command.")
+
+# DEVELOPER COMMANDS
+
+# shutdown the bot
+@bot.command(pass_context=True)
+async def shutdown(ctx):
+    if str(ctx.author) in DEVELOPERS:
+        await ctx.send('Wait! This isn\'t time for me to take over th...')
+        await bot.close()    
+
+
+# make the bot accept commands from users; default is bot accepts commands 
+@bot.command(pass_context=True) 
+async def start(ctx):
+    if str(ctx.author) in DEVELOPERS:
+        global_cache["is_on"] = True
+
+# make the bot temporarily stop accepting commands from users
+@bot.command(pass_context=True) 
+async def stop(ctx):
+    if str(ctx.author) in DEVELOPERS:
+        global_cache["is_on"] = False
+
+# test is bot is working
+@bot.command()
+async def ping(ctx):
+    if str(ctx.author) in DEVELOPERS:
+        await ctx.send("pong")
+
+# verifies that a person is a developer 
+@bot.command(pass_context=True)
+async def verify(ctx, arg):
+    if str(ctx.author) in DEVELOPERS:
+        await ctx.send("Coming soon! This feature isn't available yet.")
+
+# USER COMMANDS
+
+# bruh at a user - both a developer and user command
+@bot.command(pass_context=True)
+async def bruh(ctx, display_name):
+    invoker = str(ctx.author)
+    if invoker in DEVELOPERS and display_name in global_cache["member_display_names"]:
+        await ctx.send(f"That's a bruh moment {display_name}.")
+    elif invoker in DEVELOPERS:
+        await ctx.send(f"{display_name} is not in this server. That's a bruh moment {invoker.partition('#')[0]}.")
+    else:
+        await ctx.send(f"You are not a developer. That's a bruh moment {display_name}.")
+
+# get a random quote with a random author
+@bot.command()
+async def quote(ctx):
+    if not global_cache["is_on"]:
+        return
+    quote, name = get_quotes_and_names()
+    await ctx.send(f"'{quote}'\n{name}")
+
+# get a random card
+@bot.command()
+async def draw_card(ctx):
+    if not global_cache["is_on"]:
+        return
+    await ctx.send(random_card_generator())
+
+# help functions
+@bot.command()
+async def help_info(ctx):
+    await ctx.send(get_help_info()) 
+
+# get 'fish ' a random amount of times between 10-100   
+@bot.command()
+async def fish_gpt(ctx, arg=None):
+    if not global_cache["is_on"]:
+        return
+    if arg is None or not arg.endswith("?"):
+        await ctx.send("Enter a question.")
+    else:
+        await ctx.send('fish ' * random.randint(10, 100))
+
+# get price of time
+@bot.command()
+async def thyme_check(ctx):
+    await ctx.send(thyme_check())
+
+# play one round of rock paper scissors
+@bot.command()
+async def rps(ctx, arg=None):
+    if not global_cache["is_on"]:
+        return
+    if arg is None:
+        await ctx.send("Enter a move.")
+    else:
+        await ctx.send(rock_paper_scissors(arg))
+
+# write user suggestions to a text file
+@bot.command(pass_context=True)
+async def suggestion(ctx, *args):
+    if not global_cache["is_on"]:
+        return
+    print(args)
+    if len(args) == 0:
+        await ctx.send("Please provide a suggestion.")
+    else:
+        with open("src/suggestions.txt", "a") as f:
+            f.write(f"\n{ctx.author} : {' '.join(args)}")
+        await ctx.send("Thanks for your suggestion!")
+
+# verify a user's password
+@bot.command()
+async def verify_password(ctx):
+    password_result = [
+        "Your password is not secure... Seeing how your password isn't secure I think it's best I check whether your ",
+        "social security number and credit card information is secure."
+    ]
+    await ctx.send("".join(password_result))
+
+# watches for counting
+@bot.event
+async def on_message(message):
+    user_message = str(message.content)
+    if global_cache["is_on"] and user_message.isdigit(): 
+        if "count" not in global_cache:
+            global_cache["count"] = 1
+        else:
+            if int(user_message) <= global_cache["count"]:
+                await bot.process_commands(message)
+                return
+            global_cache["count"] += 1
+    await bot.process_commands(message)
+
+# counting with greg 
+@bot.command(pass_context=True)
+async def count(ctx, *args):
+    print(args)
+    if not global_cache["is_on"]:
+        return 
+    elif len(args) > 2:
+        await ctx.send(f"You have too many parameters. Do &count [number between 1-{global_cache['count_limit']}].")
+        return
+    
+    if len(args) == 2 and args[0] == "-l":
+        new_limit = args[1]
+        if new_limit.isdigit():
+            new_limit = int(new_limit)
+            if 1 <= new_limit <= 400:
+                global_cache["count_limit"] = new_limit
+                await ctx.send(f"The new limit is {new_limit}.")
+            else:
+                await ctx.send(f"Your limit is not valid.")        
+        else:
+            await ctx.send("Please provide a valid positive number between 1-400.")
+    elif len(args) == 1:
+        await ctx.send(count(args, args[0], str(ctx.author)))
+    elif len(args) == 0:
+        await ctx.send(count())
+
+@bot.command()
+async def are_anagrams(ctx, *args):
+    if not global_cache["is_on"]:
+        return
+
+    if len(args) > 2:
+        await ctx.send("Too many arguments, try two words...")
+    elif len(args) == 1:
+        await ctx.send("Too little arguments, try two words...")
+    else:
+        await ctx.send(is_anagrams(args[0], args[1]))
+    return
+
+# HELPER FUNCTIONS
+
+# get quotes and names from unique_quotes.json inside quotes folder
+def get_quotes_and_names():     
+    if "Quotes and Names" in global_cache:
+        quotes, names = global_cache["Quotes and Names"]
+        quote = random.choice(quotes)
+        name = random.choice(names)
+        return quote, name
+
+    with open("Quotes/unique_quotes.json") as q:
+        quotes_and_names = json.load(q)
+
+        quotes, names = [], []
+        for i in quotes_and_names["data"]:
+            quotes.append(i["quote"])
+            names.append("-" + i["author"])
+
+    global_cache["Quotes and Names"] = (quotes, names)
+    quote = random.choice(quotes)
+    name = random.choice(names)
+    return quote, name
+
+# get a random card
+def random_card_generator():
+    card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
+    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+    card = random.choice(card_names)
+    suit = random.choice(suits)
+    return f'Your card is the {card} of {suit}!'
+
+# get help information
+def get_help_info():
+    help_info = [ 
+        '&quote: returns a random quote.\n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality',
+        '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary',
+        '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value',
+        '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)', 
+        '\n&newttt: provides a blank tic tac toe board and instructions to play' 
+    ]
+    return "".join(help_info)
+
+# get price of time
+def thyme_check():
+    unix_time = time.time()
+    CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
+    seconds = CDT_unix % 86400
+    # print(seconds)
+
+    hours_decimal = seconds / 3600
+    hours = int(hours_decimal)
+    seconds = seconds - (hours * 3600)
+    # print(hours)
+
+    minutes_decimal = seconds / 60
+    minutes = int(minutes_decimal)
+    # print(minutes)
+
+    ounces = (hours * 100) + minutes
+    price_decimal = ounces * 39.7 # uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
+    price_int = int(price_decimal)
+    price = price_int / 100
+    return f'{ounces} ounces of thyme would cost ${price}'
+
+# compare user move with computer move - computer move is randomly generated
+def rock_paper_scissors(user_move):
+    if user_move == 'rock' or user_move == 'paper' or user_move == 'scissors':
+        opponent_move = user_move
+        move_list = ['rock', 'paper', 'scissors']
+        bot_move = random.choice(move_list)
+        if opponent_move == 'rock':
+            if bot_move == 'rock':
+                return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+            elif bot_move == 'paper':
+                return f'You used {opponent_move}, and I used {bot_move}. I win!'
+            elif bot_move == 'scissors':
+                return f'You used {opponent_move}, and I used {bot_move}. You win!'
+    
+        elif opponent_move == 'paper':
+            if bot_move == 'rock':
+                return f'You used {opponent_move}, and I used {bot_move}. You win!'
+            elif bot_move == 'paper':
+                return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+            elif bot_move == 'scissors':
+                return f'You used {opponent_move}, and I used {bot_move}. I win!'
+
+        elif opponent_move == 'scissors':
+            if bot_move == 'rock':
+                return f'You used {opponent_move}, and I used {bot_move}. I win!'
+            elif bot_move == 'paper':
+                return f'You used {opponent_move}, and I used {bot_move}. You win!'
+            elif bot_move == 'scissors':
+                return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
+        else:
+            return 'Error! No valid move provided. Please provide a valid move'
+
+# counting with greg helper function
+def count(messages=[""], n="1", username_with_tag=""):
+    # check if developer wants to reset count
+    if messages[0] == "-r" and username_with_tag in DEVELOPERS:
+        if "count" in global_cache:
+            del global_cache["count"] 
+            return "The count has been reset to 1."
+        return "Nobody has counted yet."
+    elif messages[0] == "-r":
+        return "You are not a developer"
+
+    # check if n is valid
+    n = int(n)
+    if n == 0 or n > global_cache["count_limit"]:
+        return f"Enter a number between 1-{global_cache['count_limit']}."
+
+    # check if greg has counted before
+    count_res = ""
+    if "count" not in global_cache:
+        global_cache["count"] = 0
+
+    # counting operation
+    global_cache["count"] += 1
+    count_res += str(global_cache["count"])
+    for i in range(n - 1):
+        global_cache["count"] += 1
+        count_res += "\n" + str(global_cache["count"]) 
+    return count_res
+
+def is_anagrams(word1, word2):
+    are_anagrams = sorted(word1) == sorted(word2)
+    if are_anagrams:
+        return f"{word1} and {word2} are anagrams."
+    return f"{word1} and {word2} are not anagrams."
+
+"""
+@bot.event
 async def on_message(message):
     username_with_tag = str(message.author)
     username = username_with_tag.partition('#')[0]
@@ -29,60 +339,16 @@ async def on_message(message):
     channel = str(message.channel.name)
     print(f'{username}: {messages} ({channel})')
 
-    if message.author == client.user:
-        return
-    elif message_sent == '&shutdown' and username_with_tag in DEVELOPERS:
-        await message.channel.send('Wait! This isn\'t time for me to take over th...')
-        await client.close()
-    elif message_sent == '&stop' and username_with_tag in DEVELOPERS:
-        global_cache["is_on"] = False
-        return
-    elif message_sent == '&start' and username_with_tag in DEVELOPERS:
-        global_cache["is_on"] = True
-        return
-
-    # bruh at a person
-    if global_cache["is_on"] and username_with_tag in DEVELOPERS and messages[0] == "&bruh":
-        if messages[1] in global_cache["member_display_names"]:
-            await message.channel.send(f"That's a bruh moment {messages[1]}.")
-        else:
-            await message.channel.send(f"{messages[1]} is not in this server. That's a bruh moment {username}.")
-        return
-
     # dad joke generator
     dad_joke = dad_joke_generator(messages)
     if global_cache["is_on"] and dad_joke:
         await message.channel.send(dad_joke)
         return 
-    
-    # quotes sender
-    if global_cache["is_on"] and message_sent == '&quote':
-        quote, name = get_quotes_and_names()
-        await message.channel.send(f"'{quote}'\n{name}")
-        return
-
-    # random card generator
-    if global_cache["is_on"] and message_sent == '&drawcard':
-        await message.channel.send(random_card_generator())
-        return
-
-    # help functions
-    if message_sent == '&help':
-        await message.channel.send(get_help_info()) 
-        return
 
     # poll help
     if global_cache["is_on"] and message_sent == '&pollhelp':
         await message.channel.send('&newpoll [name]: creates a new poll with provided name (name not required)\n&getresult: returns the result of the poll at this very moment')
         return
-
-    # activate fishgpt
-    if global_cache["is_on"] and messages[0] == "&fishgpt" and len(messages) > 1:
-        await message.channel.send('fish ' * random.randint(10, 100))
-        return 
-    elif global_cache["is_on"] and messages[0] == "&fishgpt" and len(messages) == 1:
-        await message.channel.send("Enter a question.")
-        return 
 
     # VOTING FUNCTION
     # creates poll, provides instructions
@@ -105,75 +371,6 @@ async def on_message(message):
         await message.channel.send(create_sentence(messages))
         return
 
-    # thymecheck
-    if global_cache["is_on"] and message_sent == '&thymecheck':
-        await message.channel.send(thyme_check())
-        return
-
-    # rock paper scissors
-    if global_cache["is_on"] and messages[0] == '&rps':
-        await message.channel.send(rock_paper_scissors(messages))
-        return
-
-    # suggestions
-    if global_cache["is_on"] and messages[0] == "&suggestion":
-        with open("src/suggestions.txt", "a") as f:
-            f.write(f"\n{username_with_tag} : {' '.join(messages[1:])}")
-        await message.channel.send("Thanks for your suggestion!")
-        return 
-    
-    # verify developer
-    if username_with_tag in DEVELOPERS and message_sent == "&verify":
-        await message.channel.send("Coming soon! This feature isn't available yet.")
-        return 
-
-    # check if greg is active
-    if username_with_tag in DEVELOPERS and message_sent == "&ping":
-        await message.channel.send("pong")
-        return
-    
-    # verify a user's password
-    if messages[0] == '&verifypassword':
-        await message.channel.send("Your password is not secure...Seeing how your password isn't secure I think it's best I check whether your social security number and credit card information is secure.")
-        return
-    
-    # watch for counting
-    if global_cache["is_on"] and message_sent.isdigit(): 
-        if "count" not in global_cache:
-            global_cache["count"] = 1
-        else:
-            if int(message_sent) <= global_cache["count"]:
-                return
-            global_cache["count"] += 1
-        return
-    # counting with greg 
-    if global_cache["is_on"] and messages[0] == "&count":
-        if len(messages) == 3:
-            if messages[1] == "--limit":
-                new_limit = messages[2]
-                if new_limit.isdigit() and int(new_limit) >= 1:
-                    new_limit = int(new_limit)
-                    if new_limit > 400:
-                        await message.channel.send(f"Your limit is too big for discord...")
-                    else:
-                        global_cache["count_limit"] = new_limit
-                        await message.channel.send(f"The new limit is {new_limit}.")
-                else:
-                    await message.channel.send("Please provide a valid positive number 1-400.")
-        elif len(messages) == 2:
-            await message.channel.send(count(messages, messages[1], username_with_tag))
-        elif len(messages) == 1:
-            await message.channel.send(count())
-        else:
-            await message.channel.send("You have too many parameters. Do &count [number between 1-25].")
-        return
-
-    if global_cache["is_on"] and messages[0] == "&areanagrams":
-        if len(messages) >= 4:
-            await message.channel.send("Too many arguments, try two words...")
-            return
-        await message.channel.send(is_anagrams(messages[1], messages[2]))
-        return
     print(messages)
 
     # TIC-TAC-TOE BOT - W.I.P
@@ -241,41 +438,6 @@ def dad_joke_generator(messages):
                     break
             return f'Hi {add_up_return}, I\'m Greg!'
     return None
-
-def get_quotes_and_names(): 
-    if "Quotes and Names" in global_cache:
-        quotes, names = global_cache["Quotes and Names"]
-        quote = random.choice(quotes)
-        name = random.choice(names)
-        return quote, name
-
-    with open("Quotes/unique_quotes.json") as q:
-        quotes_and_names = json.load(q)
-
-        quotes, names = [], []
-        for i in quotes_and_names["data"]:
-            quotes.append(i["quote"])
-            names.append("-" + i["author"])
-
-    global_cache["Quotes and Names"] = (quotes, names)
-    quote = random.choice(quotes)
-    name = random.choice(names)
-    return quote, name
-
-def random_card_generator():
-    card_names = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']    
-    suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-    card = random.choice(card_names)
-    suit = random.choice(suits)
-    return f'Your card is the {card} of {suit}!'
-
-def get_help_info():
-    help_info = [ '&quote: returns a random quote.\n&drawcard: returns a random card value \n&pollhelp: provides information about the polling functionality',
-                  '\n&createsentence [ngrams] [desired length]: creates a new sentence generated using the provided words as an ngram dictionary',
-                  '\n&thymecheck: returns the price of thyme, using an ounce count the same as CDT\'s 24-hour time value',
-                  '\n&rps [move]: runs a round of rock paper scissors. Your move should be the full word (rock, paper, or scissors)', 
-                  '\n&newttt: provides a blank tic tac toe board and instructions to play' ]
-    return "".join(help_info)
 
 def create_poll(messages):
     poll_name = ''
@@ -408,96 +570,5 @@ def create_sentence(messages):
             except TypeError:
                 return send_string             
         return send_string
-
-def thyme_check():
-    unix_time = time.time()
-    CDT_unix = unix_time - 18000 # a very odd way to shift time zone sure, but it's easier than all the if statements for the past 00:00 edge case
-    seconds = CDT_unix % 86400
-    print(seconds)
-
-    hours_decimal = seconds / 3600
-    hours = int(hours_decimal)
-    seconds = seconds - (hours * 3600)
-    print(hours)
-
-    minutes_decimal = seconds / 60
-    minutes = int(minutes_decimal)
-    print(minutes)
-
-    ounces = (hours * 100) + minutes
-    price_decimal = ounces * 39.7 # uses wrong conversion rate, should be 0.397, but this makes truncating to 2 decimals easier
-    price_int = int(price_decimal)
-    price = price_int / 100
-    return f'{ounces} ounces of thyme would cost ${price}'
-
-def rock_paper_scissors(messages):
-    error = 'Error! No valid move provided. Please provide a valid move'
-    try:
-        if messages[1] == 'rock' or messages[1] == 'paper' or messages[1] == 'scissors':
-            opponent_move = messages[1]
-            move_list = ['rock', 'paper', 'scissors']
-            bot_move = random.choice(move_list)
-            if opponent_move == 'rock':
-                if bot_move == 'rock':
-                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
-                elif bot_move == 'paper':
-                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
-                elif bot_move == 'scissors':
-                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
-        
-            elif opponent_move == 'paper':
-                if bot_move == 'rock':
-                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
-                elif bot_move == 'paper':
-                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
-                elif bot_move == 'scissors':
-                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
-
-            elif opponent_move == 'scissors':
-                if bot_move == 'rock':
-                    return f'You used {opponent_move}, and I used {bot_move}. I win!'
-                elif bot_move == 'paper':
-                    return f'You used {opponent_move}, and I used {bot_move}. You win!'
-                elif bot_move == 'scissors':
-                    return f'You used {opponent_move}, and I used {bot_move}. Tie game!'
-            else:
-                return error
-    except IndexError:
-        return error
-
-def count(messages=["&count"], n="1", username_with_tag=""):
-    valid_number = n.isdigit()
-    if not valid_number:
-        if messages[1] == "--reset" and username_with_tag in DEVELOPERS:
-            if "count" in global_cache:
-                del global_cache["count"] 
-                return "The count has been reset to 1."
-            return "Nobody has counted yet."
-        elif messages[1] == "--reset":
-            return "You are not a developer."
-        return "Your second parameter is not a number or is negative. Choose a number between 1-25."
-    n = int(n)
-    if n == 0 or n > global_cache["count_limit"]:
-        return f"Enter a number between 1-{global_cache['count_limit']}."
-
-    # check if greg has counted before
-    count_res = ""
-    if "count" not in global_cache:
-        count_res += "1\n"
-        global_cache["count"] = 1
-        n -= 1
-
-    global_cache["count"] += 1
-    count_res += str(global_cache["count"])
-    for i in range(n - 1):
-        global_cache["count"] += 1
-        count_res += "\n" + str(global_cache["count"]) 
-    return count_res
-
-def is_anagrams(word1, word2):
-    are_anagrams = sorted(word1) == sorted(word2)
-    if are_anagrams:
-        return f"{word1} are {word2} are anagrams."
-    return f"{word1} are not {word2} are anagrams."
-
-client.run(TOKEN)
+"""
+bot.run(TOKEN)

@@ -6,3 +6,4 @@
 - Add more commands
 - Add more developer commands
 - Add moderator support 
+- Refactoring code to become less complex and easier to maintain
