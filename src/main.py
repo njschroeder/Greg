@@ -1,10 +1,12 @@
 import string, discord, random, time, json
 from discord import Intents
 from discord.ext import commands
+from discord.ui import Button, View
 import TicTacToeMaster as ttt 
+from Interactions import Duel
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = 'Your token here', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = 'MTEwOTg5MDM0MjI2MzczMDI3Ng.Gu8YyF.QC-0H43KHi_SjBGrv4YglmBc3Wjde8HFARODoA', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
@@ -12,6 +14,7 @@ intents.message_content = True
 global_cache = {}
 global_cache["is_on"] = True
 global_cache["count_limit"] = 25
+global_cache["games"] = ("tic tac toe",)
 
 bot = commands.Bot(command_prefix='&', intents=intents)
 
@@ -22,7 +25,7 @@ bot = commands.Bot(command_prefix='&', intents=intents)
 async def on_ready():   
     print('We have logged in as {0.user}'.format(bot))
     global_cache["server"] = [member for guild in bot.guilds for member in guild.members]
-    global_cache["member_display_names"] =  [member.display_name for member in global_cache["server"]]
+    global_cache["members"] =  {member.display_name: member for member in global_cache["server"]}
     del global_cache["server"]
 
 # COMMAND NOT FOUND
@@ -71,7 +74,7 @@ async def verify(ctx, arg):
 @bot.command(pass_context=True)
 async def bruh(ctx, display_name):
     invoker = str(ctx.author)
-    if invoker in DEVELOPERS and display_name in global_cache["member_display_names"]:
+    if invoker in DEVELOPERS and display_name in global_cache["members"]:
         await ctx.send(f"That's a bruh moment {display_name}.")
     elif invoker in DEVELOPERS:
         await ctx.send(f"{display_name} is not in this server. That's a bruh moment {invoker.partition('#')[0]}.")
@@ -128,7 +131,6 @@ async def rps(ctx, arg=None):
 async def suggestion(ctx, *args):
     if not global_cache["is_on"]:
         return
-    print(args)
     if len(args) == 0:
         await ctx.send("Please provide a suggestion.")
     else:
@@ -148,13 +150,20 @@ async def verify_password(ctx):
 # watches for counting
 @bot.event
 async def on_message(message):
+    username_with_tag = str(message.author)
+    username = username_with_tag.partition('#')[0]
+    message_sent = str(message.content)
+    messages = message_sent.split()
+    channel = str(message.channel.name)
+    print(f'{username}: {messages} ({channel})')
+
     user_message = str(message.content)
     if global_cache["is_on"] and user_message.isdigit(): 
         if "count" not in global_cache:
             global_cache["count"] = 1
         else:
             if int(user_message) <= global_cache["count"]:
-                await bot.process_commands(message)
+                await bot.process_commands(message) 
                 return
             global_cache["count"] += 1
     await bot.process_commands(message)
@@ -162,7 +171,6 @@ async def on_message(message):
 # counting with greg 
 @bot.command(pass_context=True)
 async def count(ctx, *args):
-    print(args)
     if not global_cache["is_on"]:
         return 
     elif len(args) > 2:
@@ -185,8 +193,9 @@ async def count(ctx, *args):
     elif len(args) == 0:
         await ctx.send(count())
 
+# determine if two words are anagrams
 @bot.command()
-async def are_anagrams(ctx, *args):
+async def are_anagrams(ctx, *args): 
     if not global_cache["is_on"]:
         return
 
@@ -323,11 +332,56 @@ def count(messages=[""], n="1", username_with_tag=""):
         count_res += "\n" + str(global_cache["count"]) 
     return count_res
 
+# use sorting to compare two words; both lists must be equal
 def is_anagrams(word1, word2):
     are_anagrams = sorted(word1) == sorted(word2)
     if are_anagrams:
         return f"{word1} and {word2} are anagrams."
     return f"{word1} and {word2} are not anagrams."
+
+# GAMES
+
+# DUEL COMMAND
+@bot.command(pass_context=True)
+async def duel(ctx, *args):
+    receiver = args[0]
+    game = " ".join(args[1:])
+    sender = str(ctx.author).partition("#")[0]
+    if receiver not in global_cache["members"]:
+        await ctx.send(f"{receiver} is not in this server.")
+        return
+    elif game not in global_cache["games"]:
+        await ctx.send(f"{game} is not a valid game.")
+        return
+    duel_view = Duel(global_cache['members'][receiver].id)  
+    await ctx.send(f"{global_cache['members'][receiver].mention}, {sender} wants to play {game}!", view=duel_view)
+    await duel_view.wait()  
+
+# TIC TAC TOE   
+async def ttt(ctx):
+    tic_tac_toe_embed = discord.Embed(
+            title="Tic Tac Toe", 
+            description="\n".join(":black_large_square:" * 3 for _ in range(3)), 
+            color=0x00ff00)
+    tic_tac_toe = await ctx.send(embed=tic_tac_toe_embed)
+    await tic_tac_toe.add_reaction('1️⃣')
+    await tic_tac_toe.add_reaction('2️⃣')
+    await tic_tac_toe.add_reaction('3️⃣')
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    if user.bot:
+        return
+    elif user.id not in global_cache:
+        await reaction.remove(user)
+        return
+
+    if reaction.emoji == '1️⃣':
+        global_cache["ttt:row"] = 0
+    elif reaction.emoji == '2️⃣':
+        global_cache["ttt:row"] = 1
+    elif reaction.emoji == '3️⃣':
+        global_cache["ttt:row"] = 2
 
 """
 @bot.event

@@ -3,12 +3,12 @@ To verify a developer, a user can have a specific role. This way, most of the ti
 ## To Do 
 - How to make a discord bot check a user's role
 
-# Improving Tic-Tac-Toe 
+# Improving Tic-Tac-Toe - IN PROGRESS
 Watch tutorials on how to draw a box where tic-tac-toe is inside and how to use emojis as moves 
 ## To Do
 - watch youtube tutorials 
 
-# Reading discord.py docs
+# Reading discord.py docs - IN PROGRESS
 The title says it all
 - read discord.py docs to get more ideas 
 

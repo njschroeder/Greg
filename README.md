@@ -24,7 +24,7 @@ A repository for a discord bot named Greg (please be kind to him)
         - User Commands
             - type '&count' to start counting at 1
             - Greg will watch messages so users can count with greg
-            - type '&count [number between 1-25]' to speed up counting 
+            - type '&count [number between 1-your limit]' to speed up counting 
         - Moderator (Developer for now) Commands
             - type '&count -r' to reset count to 1
             - type '&count -l' [number] to set the limit of &count [number between 1-your limit]. The limit can only be between 1-400.
