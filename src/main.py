@@ -6,7 +6,7 @@ import TicTacToeMaster as ttt
 from Interactions import Duel
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = 'MTEwOTg5MDM0MjI2MzczMDI3Ng.Gu8YyF.QC-0H43KHi_SjBGrv4YglmBc3Wjde8HFARODoA', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = '', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
