@@ -3,10 +3,10 @@ from discord import Intents
 from discord.ext import commands
 from discord.ui import Button, View
 import TicTacToeMaster as ttt 
-from Interactions import Duel
+from Interactions import Duel, Games, Names
 
 # CHANGE TOKEN BEFORE PUSHING
-TOKEN, DEVELOPERS = '', ('pandomains#5375', "convexpine#8680")
+TOKEN, DEVELOPERS = 'MTEwOTg5MDM0MjI2MzczMDI3Ng.Gb3s9A.cEYh_kOPFRDRxzGfIsWpOeGnuPGKKH_vJqR_-A', ('pandomains#5375', "convexpine#8680")
 
 intents = Intents.default()
 intents.members = True
@@ -339,26 +339,40 @@ def is_anagrams(word1, word2):
         return f"{word1} and {word2} are anagrams."
     return f"{word1} and {word2} are not anagrams."
 
+def tic_tac_toe_starting_board():
+    pass
+
 # GAMES
 
 # DUEL COMMAND
 @bot.command(pass_context=True)
-async def duel(ctx, *args):
-    receiver = args[0]
-    game = " ".join(args[1:])
-    sender = str(ctx.author).partition("#")[0]
-    if receiver not in global_cache["members"]:
-        await ctx.send(f"{receiver} is not in this server.")
-        return
-    elif game not in global_cache["games"]:
-        await ctx.send(f"{game} is not a valid game.")
-        return
-    duel_view = Duel(global_cache['members'][receiver].id)  
-    await ctx.send(f"{global_cache['members'][receiver].mention}, {sender} wants to play {game}!", view=duel_view)
-    await duel_view.wait()  
+async def duel(ctx):
+    sender = global_cache['members'][str(ctx.author).partition("#")[0]]
+
+    games = Games(sender.id)
+    await ctx.send("Choose a game to duel someone with!", view=games)
+    await games.wait()
+
+    if not games.value:
+        await ctx.send(f"{sender} you didn't choose a game.")
+    game = games.value
+
+    names = Names(sender.id)
+    await ctx.send("Choose your dueler!", view=names)
+    await names.wait()
+
+    if not names.value:
+        await ctx.send(f"{sender} you didn't choose a name.")   
+    receiver = global_cache['members'][str(names.value).partition("#")[0]]
+
+    duel = Duel(receiver.id)  
+    await ctx.send(f"{receiver.mention}, {sender.mention} wants to play {game}!", view=duel)
+    await duel.wait()
+
+    await ttt(ctx, sender, receiver)
 
 # TIC TAC TOE   
-async def ttt(ctx):
+async def ttt(ctx, sender, receiver):
     tic_tac_toe_embed = discord.Embed(
             title="Tic Tac Toe", 
             description="\n".join(":black_large_square:" * 3 for _ in range(3)), 
