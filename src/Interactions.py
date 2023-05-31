@@ -13,7 +13,6 @@ class Duel(View):
         for x in self.children:
             x.disabled = True
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"You Accepted!", ephemeral=True)
         self.value = True
         self.stop()
 
@@ -22,7 +21,6 @@ class Duel(View):
         for x in self.children:
             x.disabled = True
         await interaction.response.edit_message(view=self)
-        await interaction.followup.send(f"You Declined!", ephemeral=True)
         self.value = False
         self.stop()
 

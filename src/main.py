@@ -15,6 +15,8 @@ global_cache = {}
 global_cache["is_on"] = True
 global_cache["count_limit"] = 25
 global_cache["games"] = ("tic tac toe",)
+global_cache["tic tac toe rows"] = "🟥❕⁣🟥❕⁣🟥"
+global_cache["tic tac toe between rows"] = "━ ━ ✚ ━ ━ ✚ ━ ━"
 
 bot = commands.Bot(command_prefix='&', intents=intents)
 
@@ -339,8 +341,103 @@ def is_anagrams(word1, word2):
         return f"{word1} and {word2} are anagrams."
     return f"{word1} and {word2} are not anagrams."
 
+# TIC TAC TOE HELPER FUNCTIONS
+
+# STARTING BOARD
 def tic_tac_toe_starting_board():
-    pass
+    return "{0}\n{1}\n{0}\n{1}\n{0}".format(global_cache["tic tac toe rows"], global_cache["tic tac toe between rows"])
+
+# CHECK IF SOMEONE HAS ONE
+def tic_tac_toe_finished(game, player):
+    board = global_cache[game][1]
+    for row in board:
+        count = 0
+        for col in board:
+            if col == player:
+                count += 1
+        if count == 3:
+            return True  
+    
+    for col in range(3):
+        count = 0
+        for row in range(3):
+            if board[row][col] == player:
+                count += 1
+        if count == 3:
+            return True
+
+    count = 0
+    for i in range(3):
+        if board[i][i] == player:
+            count += 1
+    if count == 3:
+        return True
+
+    count = 0
+    for i in range(3):
+        if board[i][-i - 1] == player:
+            count += 1
+    if count == 3:
+        return True
+    return False
+        
+
+async def add_tic_tac_toe_reactions(tic_tac_toe):
+    await tic_tac_toe.add_reaction('1️⃣')
+    await tic_tac_toe.add_reaction('2️⃣')
+    await tic_tac_toe.add_reaction('3️⃣')
+
+def get_row_or_col(reaction):
+    if reaction == "1️⃣":
+        return 0
+    elif reaction == '2️⃣':
+        return 1
+    return 2
+
+def update_tic_tac_toe_board(move, game, row, col):
+    if move:
+        which_player = 1 # O
+    else:
+        which_player = 2 # X
+    global_cache[game][1][row][col] = which_player
+    return global_cache[game][1]
+
+def update_tic_tac_toe_embed(game):
+    player1, player2 = "🅾️", "❎"
+    board = global_cache[game][1]
+    red_square, exclamation_mark, in_between_row = "🟥", "❕", "━ ━ ✚ ━ ━ ✚ ━ ━"
+    updated_embed = ""
+    for row in range(3):
+        for col in range(3):
+            tmp = ""
+            if col < 2:
+                tmp = exclamation_mark
+            if board[row][col] == 0:
+                tmp += red_square
+            elif board[row][col] == 1:
+                tmp += player1
+            else:
+                tmp += player2
+            updated_embed += tmp[::-1]
+        if row < 2:
+            updated_embed += "\n" + in_between_row + "\n"
+
+    return discord.Embed(
+            title="Tic Tac Toe", 
+            description=updated_embed, 
+            color=0x3944bc
+        )
+
+def tic_tac_toe_draw(game):
+    board = global_cache[game][1]
+    count = 0
+    for row in board:
+        for col in row:
+            if col != 0:
+                count += 1
+    if count == 9:
+        return True
+    return False
 
 # GAMES
 
@@ -349,7 +446,7 @@ def tic_tac_toe_starting_board():
 async def duel(ctx):
     sender = global_cache['members'][str(ctx.author).partition("#")[0]]
 
-    games = Games(sender.id)
+    games = Games(sender.id)    
     await ctx.send("Choose a game to duel someone with!", view=games)
     await games.wait()
 
@@ -366,36 +463,83 @@ async def duel(ctx):
     receiver = global_cache['members'][str(names.value).partition("#")[0]]
 
     duel = Duel(receiver.id)  
-    await ctx.send(f"{receiver.mention}, {sender.mention} wants to play {game}!", view=duel)
+    await ctx.send(f"{receiver.mention}, {sender.mention} challenges you to a duel of {game}!", view=duel)
     await duel.wait()
 
-    await ttt(ctx, sender, receiver)
+    if duel.value:
+        await ttt(ctx, sender, receiver)
+    else:
+        await ctx.send(f"{sender.mention}, {receiver.mention} declined your duel to the game of {game}!")
 
 # TIC TAC TOE   
 async def ttt(ctx, sender, receiver):
-    tic_tac_toe_embed = discord.Embed(
+    if f"{sender.id}:{receiver.id}-tic tac toe" in global_cache:
+        await ctx.send(f'{sender.mention} and {receiver.mention} are already playing of tic tac toe.')
+        return
+
+    players = [sender, receiver]
+    current_game = f"{sender.id}:{receiver.id}-tic tac toe"
+    global_cache[current_game] = (
+        False, 
+        [[0] * 3 for _ in range(3)], 
+        discord.Embed(
             title="Tic Tac Toe", 
-            description="\n".join(":black_large_square:" * 3 for _ in range(3)), 
-            color=0x00ff00)
-    tic_tac_toe = await ctx.send(embed=tic_tac_toe_embed)
-    await tic_tac_toe.add_reaction('1️⃣')
-    await tic_tac_toe.add_reaction('2️⃣')
-    await tic_tac_toe.add_reaction('3️⃣')
+            description=tic_tac_toe_starting_board(), 
+            color=0x3944bc
+        )
+    )
 
-@bot.event
-async def on_reaction_add(reaction, user):
-    if user.bot:
-        return
-    elif user.id not in global_cache:
-        await reaction.remove(user)
-        return
+    while True:   
+        move = global_cache[current_game][0]
+        current_player = players[int(move)]
+        tic_tac_toe_embed = global_cache[current_game][2]
 
-    if reaction.emoji == '1️⃣':
-        global_cache["ttt:row"] = 0
-    elif reaction.emoji == '2️⃣':
-        global_cache["ttt:row"] = 1
-    elif reaction.emoji == '3️⃣':
-        global_cache["ttt:row"] = 2
+        tic_tac_toe = await ctx.send(f"{current_player.mention}, {players[int(not move)].mention} has made their move! Choose your row!", embed=tic_tac_toe_embed)
+        await add_tic_tac_toe_reactions(tic_tac_toe)
+
+        def check(reaction, user):
+            return user.id == current_player.id and str(reaction.emoji) in ["1️⃣", '2️⃣', '3️⃣'] and reaction.message == tic_tac_toe   
+        confirmation = await bot.wait_for("reaction_add", check=check)
+        if not confirmation:
+            await ctx.send(f"{current_player.mention}, please make your move.")
+            continue
+
+        reaction, user = confirmation
+        reaction = str(reaction)
+        row = get_row_or_col(reaction)
+        await ctx.send(f"{current_player.mention}, you chose row {row + 1}.")
+
+        tic_tac_toe = await ctx.send(f"{current_player.mention}, choose your column!", embed=tic_tac_toe_embed)
+        await add_tic_tac_toe_reactions(tic_tac_toe)  
+            
+        confirmation = await bot.wait_for("reaction_add", check=check)
+        if not confirmation:
+            await ctx.send(f"{current_player.mention}, please make your move.")
+            continue
+
+        reaction, user = confirmation
+        reaction = str(reaction)
+        col = get_row_or_col(reaction)
+        await ctx.send(f"{current_player.mention}, you chose column {col + 1}.")
+
+        if global_cache[current_game][1][row][col] != 0:
+            await ctx.send(f"{current_player.mention}, {row} and {col} on the tic tac toe board have already been taken.\nPlease input a valid row and column position.")
+            continue
+        
+        
+        global_cache[current_game] = (
+            not move, 
+            update_tic_tac_toe_board(move, current_game, row, col),
+            update_tic_tac_toe_embed(current_game)
+        )
+        if tic_tac_toe_finished(current_game, 1) or tic_tac_toe_finished(current_game, 2):
+            await ctx.send(f"{current_player.mention} has won!", embed=tic_tac_toe_embed)
+            del global_cache[current_game]
+            break
+        elif tic_tac_toe_draw(current_game):
+            await ctx.send(f"{current_player.mention} and {players[int(not move)].mention}, it's a draw :(. Duel again?")
+            del global_cache[current_game]
+            break
 
 """
 @bot.event
@@ -440,58 +584,6 @@ async def on_message(message):
         return
 
     print(messages)
-
-    # TIC-TAC-TOE BOT - W.I.P
-    # prepares new game
-    if global_cache["is_on"] and message_sent == '&newttt':
-        await message.channel.send('Instructions: Copy each board when provided, then add in your move as X into an available space')
-        graphic = ttt.printBoard([" ", " ", " ", " ", " ", " ", " ", " ", " "])
-        for i in range(3):
-            printTuple = (graphic[3 * i], graphic[(3 * i) + 1], graphic[(3 * i) + 2])
-            builtMessage = "    ".join(printTuple)
-            await message.channel.send(builtMessage)
-        return
-    # parses whether the message sent provides a valid tic tac toe board
-    isBoard = True
-    if global_cache["is_on"] and (len(messages) == 9):
-        for i in range(9):
-            if messages[i] != 'I':
-                if messages[i] != 'X':
-                    if messages[i] != 'O':
-                        isBoard = False
-        # Translates inputs to what the bot understands, calls for AI move
-        if isBoard:
-            isFinished = True
-            newBoard = messages
-            for _ in range(9):
-                if newBoard[_] == 'I':
-                    isFinished = False
-                    newBoard[_] = ' '
-            if not isFinished:
-                aiMovePosition = int(ttt.getAIMove(newBoard, "O", "O")[0])
-            newBoard[aiMovePosition] = "O"
-            # inserts the AI move and produces an output to be sent to chat, as well as any game-ending declarations
-            graphic = ttt.printBoard(newBoard)
-            for i in range(3):
-                printTuple = (graphic[3 * i], graphic[(3 * i) + 1], graphic[(3 * i) + 2])
-                playCount = 0
-                for j in range(3):
-                    if printTuple[j] != 'I':
-                        playCount += 1
-                if playCount == 0:
-                    builtMessage = "    ".join(printTuple)
-                elif playCount == 1:
-                    builtMessage = "   ".join(printTuple)
-                else:
-                    builtMessage = "  ".join(printTuple)
-                await message.channel.send(builtMessage)
-            if ttt.checkWin(newBoard, 'X'):
-                await message.channel.send('You win')
-            elif ttt.checkWin(newBoard, 'O'):
-                await message.channel.send('I win')
-            elif ttt.checkTie(newBoard):
-                await message.channel.send('We tied')
-        return
 
 def dad_joke_generator(messages):
     for i in range(len(messages) - 1):

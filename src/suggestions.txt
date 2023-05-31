@@ -4,3 +4,5 @@ pandomains#5375 : make it answer entirely in FRC team numbers
 convexpine#8680 : fix tac-tac-toe
 convexpine#8680 : make poll with emoji reaction
 convexpine#8680 : improve help_info
+convexpine#8680 : fix weird exclamation mark that appears after some moves in tic tac toe and make the code better
+convexpine#8680 : make greg ALWAYS listening (use web server)
